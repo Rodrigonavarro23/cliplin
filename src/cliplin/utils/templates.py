@@ -1,5 +1,6 @@
 """Template management utilities."""
 
+import json
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -453,6 +454,12 @@ def create_ai_tool_config(target_dir: Path, ai_tool: str) -> None:
     rules_dir = target_dir / config["rules_dir"]
     rules_dir.mkdir(parents=True, exist_ok=True)
     
+    # Create MCP configuration files
+    if ai_tool == "cursor":
+        create_cursor_mcp_config(target_dir)
+    elif ai_tool == "claude-desktop":
+        create_claude_desktop_mcp_config(target_dir)
+    
     # Create context.mdc for Cursor
     if ai_tool == "cursor" and config["config_file"]:
         context_file = target_dir / config["config_file"]
@@ -466,6 +473,104 @@ def create_ai_tool_config(target_dir: Path, ai_tool: str) -> None:
         feature_content = get_cursor_feature_processing_content()
         feature_file.write_text(feature_content)
         console.print(f"  [green]✓[/green] Created {config['feature_processing_file']}")
+
+
+def create_cursor_mcp_config(target_dir: Path) -> None:
+    """Create or update .cursor/mcp.json with ChromaDB MCP server configuration."""
+    mcp_file = target_dir / ".cursor" / "mcp.json"
+    mcp_file.parent.mkdir(parents=True, exist_ok=True)
+    
+    # ChromaDB database path relative to project root
+    chromadb_path = ".cliplin/data/context/chroma.sqlite3"
+    
+    # MCP server configuration
+    cliplin_server_config = {
+        "command": "uvx",
+        "args": [
+            "chroma-mcp",
+            "--client-type",
+            "persistent",
+            "--data-dir",
+            chromadb_path
+        ]
+    }
+    
+    # Read existing config if it exists
+    existing_config = {}
+    if mcp_file.exists():
+        try:
+            with open(mcp_file, "r", encoding="utf-8") as f:
+                existing_config = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            # If file is corrupted or unreadable, start fresh
+            existing_config = {}
+    
+    # Initialize mcpServers if it doesn't exist
+    if "mcpServers" not in existing_config:
+        existing_config["mcpServers"] = {}
+    
+    # Check if cliplin-context server already exists
+    if "cliplin-context" in existing_config["mcpServers"]:
+        # Update existing configuration
+        existing_config["mcpServers"]["cliplin-context"] = cliplin_server_config
+        console.print(f"  [yellow]⚠[/yellow]  Updated existing Cliplin MCP server in .cursor/mcp.json")
+    else:
+        # Add new server configuration
+        existing_config["mcpServers"]["cliplin-context"] = cliplin_server_config
+        console.print(f"  [green]✓[/green] Created .cursor/mcp.json")
+    
+    # Write updated configuration
+    with open(mcp_file, "w", encoding="utf-8") as f:
+        json.dump(existing_config, f, indent=2, ensure_ascii=False)
+
+
+def create_claude_desktop_mcp_config(target_dir: Path) -> None:
+    """Create or update .claude/mcp_config.json with ChromaDB MCP server configuration."""
+    mcp_file = target_dir / ".claude" / "mcp_config.json"
+    mcp_file.parent.mkdir(parents=True, exist_ok=True)
+    
+    # ChromaDB database path relative to project root
+    chromadb_path = ".cliplin/data/context/chroma.sqlite3"
+    
+    # MCP server configuration
+    cliplin_server_config = {
+        "command": "uvx",
+        "args": [
+            "chroma-mcp",
+            "--client-type",
+            "persistent",
+            "--data-dir",
+            chromadb_path
+        ]
+    }
+    
+    # Read existing config if it exists
+    existing_config = {}
+    if mcp_file.exists():
+        try:
+            with open(mcp_file, "r", encoding="utf-8") as f:
+                existing_config = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            # If file is corrupted or unreadable, start fresh
+            existing_config = {}
+    
+    # Initialize mcpServers if it doesn't exist
+    if "mcpServers" not in existing_config:
+        existing_config["mcpServers"] = {}
+    
+    # Check if cliplin-context server already exists
+    if "cliplin-context" in existing_config["mcpServers"]:
+        # Update existing configuration
+        existing_config["mcpServers"]["cliplin-context"] = cliplin_server_config
+        console.print(f"  [yellow]⚠[/yellow]  Updated existing Cliplin MCP server in .claude/mcp_config.json")
+    else:
+        # Add new server configuration
+        existing_config["mcpServers"]["cliplin-context"] = cliplin_server_config
+        console.print(f"  [green]✓[/green] Created .claude/mcp_config.json")
+    
+    # Write updated configuration
+    with open(mcp_file, "w", encoding="utf-8") as f:
+        json.dump(existing_config, f, indent=2, ensure_ascii=False)
 
 
 def get_cursor_context_content() -> str:

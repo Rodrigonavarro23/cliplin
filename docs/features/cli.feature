@@ -1,4 +1,4 @@
-@status:pending
+@status:implemented
 Feature: Cliplin CLI Tool
   As a developer
   I want to install and use the Cliplin CLI tool
@@ -47,6 +47,8 @@ Feature: Cliplin CLI Tool
     And the CLI should generate configuration files adjusted for the AI tool ID "cursor"
     And the CLI should create `.cursor/rules/` directory structure
     And the CLI should create MCP server configuration files for Cursor
+    And the CLI should create `.cursor/mcp.json` if it does not exist
+    And the CLI should configure `.cursor/mcp.json` with ChromaDB MCP server configuration
     And the CLI should configure the ChromaDB MCP server for Cursor integration
     And the CLI should create `.cursor/rules/context.mdc` with ChromaDB MCP configuration
     And the CLI should create `.cursor/rules/feature-processing.mdc` with feature processing rules
@@ -60,7 +62,10 @@ Feature: Cliplin CLI Tool
     When I run `cliplin init --ai claude-desktop`
     Then the CLI should create configuration files in the current directory
     And the CLI should generate configuration files adjusted for the AI tool ID "claude-desktop"
+    And the CLI should create `.claude/` directory structure
     And the CLI should create MCP server configuration files for Claude Desktop
+    And the CLI should create `.claude/mcp_config.json` if it does not exist
+    And the CLI should configure `.claude/mcp_config.json` with ChromaDB MCP server configuration
     And the CLI should configure the ChromaDB MCP server for Claude Desktop integration
     And the CLI should validate that Claude Desktop-specific configurations are correct
     And the CLI should initialize ChromaDB collections as specified in the context rules
@@ -84,6 +89,8 @@ Feature: Cliplin CLI Tool
       | uisi |
     And the CLI should verify that configuration file exists at `.cliplin/config.yaml`
     And the CLI should verify that MCP server configuration files exist for the specified AI tool
+    And if the AI tool is "cursor", the CLI should verify that `.cursor/mcp.json` exists
+    And if the AI tool is "claude-desktop", the CLI should verify that `.claude/mcp_config.json` exists
     And the CLI should verify that Python version is 3.10 or higher
     And the CLI should verify that required dependencies are available
     And if any validation fails, the CLI should display clear error messages indicating what is missing or incorrect
@@ -93,6 +100,13 @@ Feature: Cliplin CLI Tool
     And I am in a directory where I want to initialize a Cliplin project
     When I run `cliplin init --ai cursor`
     Then the CLI should create MCP server configuration that enables ChromaDB context access
+    And the CLI should create `.cursor/mcp.json` with MCP server configuration
+    And the `.cursor/mcp.json` file should define the ChromaDB MCP server with:
+      | Field | Description |
+      | mcpServers | Object containing server configurations |
+      | cliplin-context | Server identifier for ChromaDB MCP |
+      | command | Command to start the ChromaDB MCP server |
+      | args | Arguments including database path |
     And the MCP server configuration should specify the ChromaDB database path as `.cliplin/data/context/chroma.sqlite3`
     And the MCP server configuration should define the collection mappings:
       | Collection | File Pattern | Directory |
@@ -124,6 +138,9 @@ Feature: Cliplin CLI Tool
     Then the CLI should check if Cliplin is already initialized
     And if Cliplin is already initialized, the CLI should display a warning message
     And the CLI should ask for confirmation before overwriting existing Cliplin configuration
+    And if `.cursor/mcp.json` already exists, the CLI should check if it contains Cliplin MCP server configuration
+    And if `.cursor/mcp.json` exists and contains Cliplin configuration, the CLI should preserve existing MCP server entries
+    And if `.cursor/mcp.json` exists but does not contain Cliplin configuration, the CLI should add the Cliplin MCP server configuration
     And if the user confirms, the CLI should proceed with initialization
     And if the user declines, the CLI should abort without making changes
     And if Cliplin is not initialized, the CLI should proceed with initialization normally
