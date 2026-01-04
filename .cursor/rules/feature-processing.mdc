@@ -8,20 +8,44 @@ alwaysApply: true
 
 When a user asks to implement a feature or work with `.feature` files:
 
+0. **Context Loading Phase (MANDATORY FIRST STEP)**:
+   - **CRITICAL**: Before starting ANY feature analysis or implementation, you MUST load context from the ChromaDB MCP server 'cliplin-context'
+   - **Use MCP tools to query collections**: Use the ChromaDB MCP tools (chroma_query_documents) to load relevant context from ALL collections:
+     * Query `business-and-architecture` collection to load ADRs and business documentation
+     * Query `tech-specs` collection to load technical specifications and implementation rules
+     * Query `features` collection to load related or dependent features
+     * Query `uisi` collection to load UI/UX requirements if applicable
+   - **Query strategy**: Use semantic queries based on the feature domain, entities, and use cases to retrieve relevant context
+   - **Never proceed without loading context**: Do NOT start feature analysis or implementation until you have queried and loaded the relevant context from ChromaDB
+   - **Context update check**: After loading context, verify if any context files need reindexing:
+     * Run `cliplin reindex --dry-run` to check if context files are up to date
+     * If context files are outdated, ask user for confirmation before reindexing
+     * Only proceed with feature work after ensuring context is current and loaded
+
 1. **Feature Analysis Phase**:
    - Read and analyze the `.feature` file from the `docs/features/` directory
    - Identify all scenarios (Given-When-Then steps)
    - Extract business rules and acceptance criteria
    - Identify domain entities, use cases, and boundaries
+   - **Use loaded context**: Apply the context loaded from ChromaDB in phase 0 to inform your analysis:
+     * Use business rules from `business-and-architecture` collection
+     * Apply technical constraints from `tech-specs` collection
+     * Consider dependencies from related features in `features` collection
+     * Incorporate UI/UX requirements from `uisi` collection if applicable
 
 2. **Detailed Implementation Plan Creation**:
    Create a comprehensive plan that includes:
    
    **a) Architecture Analysis**:
+   - **Use loaded context**: Apply the context already loaded from ChromaDB in phase 0
+   - Use ADRs from `business-and-architecture` collection to understand existing architecture decisions
+   - Apply technical constraints and patterns from `tech-specs` collection
    - Identify which domain layer components are needed (entities, value objects, use cases)
    - Determine required ports (interfaces) following hexagonal architecture
    - Identify adapters needed (repositories, external services, etc.)
    - Map feature scenarios to use cases
+   - Ensure consistency with existing patterns documented in the loaded context
+   - If additional context is needed, query ChromaDB collections again with more specific queries
    
    **b) Business Logic Implementation**:
    - List all business logic components to implement
@@ -30,12 +54,12 @@ When a user asks to implement a feature or work with `.feature` files:
    - Specify error handling requirements
    
    **c) Unit Test Strategy**:
-   - For each business logic component, create unit test specifications:
-     * Test each use case independently with mocked dependencies
-     * Test edge cases, validation rules, and error conditions
-     * Use pytest fixtures for test setup
-     * Mock all external dependencies using unittest.mock or pytest-mock
-     * Achieve minimum 80% code coverage for business logic
+   - For each business logic component, create unit test specifications
+   - Test each use case independently with mocked dependencies
+   - Test edge cases, validation rules, and error conditions
+   - Use pytest fixtures for test setup
+   - Mock all external dependencies using unittest.mock or pytest-mock
+   - Achieve minimum 80% code coverage for business logic
    
    **d) BDD Test Strategy**:
    - Map each scenario from the `.feature` file to BDD test steps
@@ -60,129 +84,45 @@ When a user asks to implement a feature or work with `.feature` files:
 
 4. **Feature Completion**:
    - Once all implementation is complete and tests pass:
-     * Add `@status:implemented` tag to the feature file at the top level to mark it as implemented and active
+     * Add `@status:implemented` tag to the feature file at the top level
      * Ensure the feature file is properly formatted and readable
      * All code and tests must be traceable back to the feature scenarios
-   
-   - When modifying an existing implemented feature:
-     * Add `@changed:YYYY-MM-DD` tag with the current date
-     * Add `@reason:<short description>` tag explaining the reason for the change
-     * If the change significantly deviates from the original specification, document it clearly in the feature file
-     * Ensure all tests are updated and pass after the change
+     * **Reindex the updated feature file**: Run `cliplin reindex docs/features/feature-name.feature` to update ChromaDB
+     * If you created or modified any context files (ADRs, TS4, business docs), reindex them as well
+     * This ensures the context remains synchronized with the implementation
 
-   - When deprecating a feature:
-     * Replace `@status:implemented` with `@status:deprecated` tag
-     * Add `@changed:YYYY-MM-DD` tag with the deprecation date
-     * Add `@reason:<short description>` tag explaining why the feature is deprecated
-     * Marked features should not be modified or extended
+### When User Requests Feature Modification
 
-   - **Context Learning and Documentation** (after successful implementation or modification):
-     After a feature is successfully implemented or modified, analyze the interaction and learnings to propose updates to context files:
-     
-     * Review the implementation process and identify:
-       - User corrections and feedback received during implementation
-       - Technical decisions made that were not previously documented
-       - Patterns, conventions, or best practices discovered or applied
-       - Constraints or limitations encountered that should be documented
-       - Architectural insights or trade-offs that emerged
-       - UI/UX considerations that arose during implementation
-     
-     * Propose updates to context files based on learnings:
-       - **ADRs (docs/adrs/*.md)**: Document architectural decisions, trade-offs, constraints, or irreversible choices made during implementation
-       - **Business documentation (docs/business/*.md)**: Update business rules, domain concepts, or business constraints that were clarified or refined
-       - **TS4 files (docs/ts4/*.ts4)**: Add or update technical specifications, coding conventions, naming rules, validation strategies, or implementation patterns that were discovered or refined
-       - **UI Intent YAML (docs/ui-intent/*.yaml)**: Document UI/UX insights, component patterns, interaction flows, or user experience decisions that emerged
-     
-     * Present proposed context updates to the user for review before applying:
-       - Explain what was learned and why it should be documented
-       - Specify which context file(s) should be updated and why
-       - Provide clear, actionable updates that capture the knowledge gained
-       - Ensure all updates are traceable to the feature implementation experience
-     
-     * This ensures that knowledge gained during feature implementation becomes part of the system's context, making future implementations more accurate and aligned with established patterns
+When a user asks to modify an existing feature:
 
-   - Feature states (based on Cliplin framework):
-     * `@status:pending` or no status tag – feature is not yet implemented
-     * `@status:implemented` – feature is implemented, tested, and active
-     * `@status:deprecated` – feature must not be modified (deprecated)
+0. **Context Loading Phase (MANDATORY FIRST STEP)**:
+   - **CRITICAL**: Before starting ANY feature modification analysis, you MUST load context from the ChromaDB MCP server 'cliplin-context'
+   - **Use MCP tools to query collections**: Use the ChromaDB MCP tools (chroma_query_documents) to load relevant context:
+     * Query `features` collection to load the feature being modified and related features that might be affected
+     * Query `business-and-architecture` collection to load business rules and ADRs that might impact the change
+     * Query `tech-specs` collection to load technical constraints that must be considered
+     * Query `uisi` collection if UI/UX changes are involved
+   - **Query strategy**: Use semantic queries based on the feature domain, entities, and use cases to retrieve relevant context
+   - **Never proceed without loading context**: Do NOT start modification analysis until you have queried and loaded the relevant context from ChromaDB
+   - **Context update check**: After loading context, verify if any context files need reindexing:
+     * Run `cliplin reindex --dry-run` to check if context files are up to date
+     * If context files are outdated, ask user for confirmation before reindexing
+     * Only proceed with feature modification after ensuring context is current and loaded
 
-### Feature File Format Standards
+1. **Impact Analysis**:
+   - **Use loaded context**: Apply the context already loaded from ChromaDB in phase 0
+   - Identify all features, components, and context files that depend on or relate to the feature being modified
+   - Analyze the scope of changes required based on the loaded context
+   - Check for breaking changes that might affect other features using the loaded feature dependencies
+   - If additional context is needed, query ChromaDB collections again with more specific queries
 
-- Use Gherkin syntax for `.feature` files
-- Place feature files in `docs/features/` directory
-- Use descriptive feature names matching the file name
-- Include Background section for common setup steps
-- Tag scenarios appropriately (e.g., `@smoke`, `@critical`, `@wip`)
-- Use semantic status tags following Cliplin framework:
-  * `@status:pending` or no tag for unimplemented features
-  * `@status:implemented` when feature is fully implemented and tested
-  * `@status:deprecated` when feature should not be modified
-- Use change tracking tags when modifying features:
-  * `@changed:YYYY-MM-DD` for the change date
-  * `@reason:<short description>` for change justification
+2. **Modification Process**:
+   - Follow the same phases as feature implementation (Analysis, Planning, Implementation, Completion)
+   - Ensure backward compatibility unless explicitly breaking changes are required
+   - Update related context files if business rules or technical specs change
+   - Add `@changed:YYYY-MM-DD` and `@reason:<description>` tags to the feature file
 
-### Example Feature File Structure
-
-```gherkin
-@status:implemented
-Feature: User Authentication
-  As a user
-  I want to authenticate with my credentials
-  So that I can access protected resources
-
-  Background:
-    Given the authentication service is available
-
-  Scenario: Successful login with valid credentials
-    Given a user exists with email "user@example.com" and password "secure123"
-    When I login with email "user@example.com" and password "secure123"
-    Then I should be authenticated
-    And I should receive an access token
-
-  Scenario: Failed login with invalid credentials
-    Given a user exists with email "user@example.com" and password "secure123"
-    When I login with email "user@example.com" and password "wrongpassword"
-    Then I should not be authenticated
-    And I should receive an authentication error
-```
-
-### Example Feature File with Change Tracking
-
-```gherkin
-@status:implemented
-@changed:2024-12-20
-@reason:Added MFA support requirement
-Feature: User Authentication
-  As a user
-  I want to authenticate with my credentials and MFA
-  So that I can securely access protected resources
-
-  Background:
-    Given the authentication service is available
-
-  Scenario: Successful login with valid credentials and MFA
-    Given a user exists with email "user@example.com" and password "secure123"
-    And the user has MFA enabled
-    When I login with email "user@example.com" and password "secure123"
-    And I provide valid MFA code "123456"
-    Then I should be authenticated
-    And I should receive an access token
-
-  Scenario: Failed login with invalid MFA code
-    Given a user exists with email "user@example.com" and password "secure123"
-    And the user has MFA enabled
-    When I login with email "user@example.com" and password "secure123"
-    And I provide invalid MFA code "000000"
-    Then I should not be authenticated
-    And I should receive an authentication error
-```
-
-### Testing Requirements
-
-- **Unit Tests**: Test business logic in isolation with mocked dependencies
-  - Focus: Business rules, validation, use case logic
-  - Coverage: Minimum 80% for business logic modules
-  
-- **BDD Tests**: Test complete feature scenarios end-to-end
-  - Focus: Feature scenarios, user workflows, integration
-  - Use real adapters (not mocks) to validate actual behavior
+3. **Post-Modification**:
+   - Reindex all modified context files using `cliplin reindex`
+   - Verify that related features still work correctly
+   - Update documentation if needed

@@ -2,11 +2,18 @@
 alwaysApply: true
 ---
 
-- Before start any planning, coding or thinking task use your internal tool called 'cliplin-context' (ChromaDB MCP server) as source of truth for rules, project guidelines, business context, architecture decision and conventions. Defined indexes or collections:
-   - 'business-and-architecture' collection, store ADRs and business documentation md files located at 'docs/adrs' and 'docs/business' folder
-   - 'features' collection, store .feature files located at 'docs/features' folder
-   - 'tech-specs' collection, store .ts4 files located at 'docs/ts4' folder
-   - 'uisi' collection, store .yaml files located at 'docs/ui-intent'
+## MANDATORY: Load Context Before Any Task
+
+**CRITICAL RULE**: Before starting ANY planning, coding, or thinking task, you MUST:
+
+1. **Load context from ChromaDB MCP server**: Use the 'cliplin-context' MCP server (ChromaDB MCP server) as the source of truth
+2. **Query relevant collections**: Use ChromaDB MCP tools (chroma_query_documents) to query and load relevant context from the appropriate collections:
+   - 'business-and-architecture' collection: ADRs and business documentation md files located at 'docs/adrs' and 'docs/business' folder
+   - 'features' collection: .feature files located at 'docs/features' folder
+   - 'tech-specs' collection: .ts4 files located at 'docs/ts4' folder
+   - 'uisi' collection: .yaml files located at 'docs/ui-intent' folder
+3. **Never proceed without context**: Do NOT start any task until you have queried and loaded the relevant context from ChromaDB collections
+4. **Use semantic queries**: Query collections using semantic search based on the task domain, entities, and requirements to retrieve the most relevant context
    
 ## Context File Indexing Rules
 
@@ -44,38 +51,29 @@ When any context file is created or modified, you MUST:
    - If the user confirms, proceed with indexing
 
 3. **Indexing process** (only after user confirmation):
-   - Check if the document already exists by querying the collection with the file path as ID using `chroma_get_documents` or `chroma_query_documents`
-   - If it exists, use `chroma_update_documents` to update it
-   - If it doesn't exist, use `chroma_add_documents` to add it
-   - Always include proper metadata as an array of objects with the structure: `[{'file_path': 'relative/path/to/file', 'type': 'ts4|adr|project-doc|feature|ui-intent', 'collection': 'target-collection-name'}]`
-   - Use the file path (relative to project root) as the document ID
-   - Avoid duplicated files and outdated or deleted files in the collection
+   - **Preferred method**: Use the Cliplin CLI command `cliplin reindex <file-path>` which handles all the complexity automatically
+   - **Alternative method** (if CLI not available): Use ChromaDB MCP tools directly:
+     * Check if the document already exists by querying the collection with the file path as ID using `chroma_get_documents` or `chroma_query_documents`
+     * If it exists, use `chroma_update_documents` to update it
+     * If it doesn't exist, use `chroma_add_documents` to add it
+     * Always include proper metadata as an array of objects with the structure: `[{'file_path': 'relative/path/to/file', 'type': 'ts4|adr|project-doc|feature|ui-intent', 'collection': 'target-collection-name'}]`
+     * Use the file path (relative to project root) as the document ID
+     * Avoid duplicated files and outdated or deleted files in the collection
 
 4. **Manual re-indexing requests**: When a user explicitly requests to reindex files (e.g., "reindexa los archivos en docs/business"), you should:
-   - List the files that will be indexed
-   - Ask for confirmation: "Voy a reindexar los siguientes archivos: [lista]. ¿Deseas continuar?"
-   - Proceed only after confirmation
-- When using chroma_add_documents, ensure metadatas parameter is an array of dictionaries (one per document), not a string or single dictionary. Example: metadatas=[{'file_path': 'docs/ts4/file.ts4', 'type': 'ts4'}] for a single document.
-- Metadata values must be strings, numbers, or booleans. Use null for optional metadata fields that don't apply.
-- When a user requests any change to a feature file (including creating a new one, modifying an existing one, or deleting one), you MUST:
-  1. First, query the 'features' collection using chroma_query_documents to find all related features that might be affected by the change. Use semantic search to identify features that:
-     - Reference the same domain entities, use cases, or components
-     - Share similar scenarios or business logic
-     - Have dependencies or relationships with the feature being changed
-     - Use the same adapters, ports, or domain models
-  2. Analyze the proposed change to understand its scope and impact:
-     - Identify which domain entities, use cases, ports, or adapters are affected
-     - Determine if the change affects shared components or interfaces
-     - Check if the change modifies business rules that other features depend on
-  3. Create a comprehensive impact analysis plan that includes:
-     - List of all affected features (from the query results)
-     - Description of how each feature is impacted
-     - Required changes to each affected feature
-     - Required changes to domain layer (entities, value objects, use cases)
-     - Required changes to ports (interfaces)
-     - Required changes to adapters
-     - Required updates to unit tests
-     - Required updates to BDD/acceptance tests
-     - Suggested order of implementation to minimize breaking changes
-  4. Present this plan to the user BEFORE implementing any changes, asking for confirmation or adjustments
-  5. Only proceed with implementation after the user approves the plan or provides feedback
+   - **Use the Cliplin CLI command**: Run `cliplin reindex` with appropriate options instead of manually using ChromaDB MCP tools
+   - For specific files: `cliplin reindex docs/path/to/file.md`
+   - For directories: `cliplin reindex --directory docs/business`
+   - For file types: `cliplin reindex --type ts4`
+   - For preview: `cliplin reindex --dry-run`
+   - For verbose output: `cliplin reindex --verbose`
+   - The CLI command handles all the complexity of checking for existing documents, updating metadata, and managing collections
+   - Only use ChromaDB MCP tools directly if the CLI is not available or for specific advanced operations
+
+5. **Automatic indexing workflow**:
+   - When context files are created or modified, **prefer using the CLI command** for indexing:
+     * Run `cliplin reindex <file-path>` for the specific file that was changed
+     * Or run `cliplin reindex --directory <directory>` if multiple files in a directory were changed
+   - The CLI ensures proper metadata, handles duplicates, and maintains consistency
+   - Always ask for user confirmation before running reindex commands (unless in automated workflow)
+   - Use `cliplin reindex --dry-run` first to show what would be indexed

@@ -1,14 +1,14 @@
 {
-    "mcpServers": {
-        "cliplin-context": {
-            "command": "uvx",
-            "args": [
-                "chroma-mcp",
-                "--client-type",
-                "persistent",
-                "--data-dir",
-                ".cliplin/data/context"
-            ]
-        }
+  "mcpServers": {
+    "cliplin-context": {
+      "command": "uvx",
+      "args": [
+        "chroma-mcp",
+        "--client-type",
+        "persistent",
+        "--data-dir",
+        ".cliplin/data/context/chroma.sqlite3"
+      ]
     }
+  }
 }
