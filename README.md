@@ -245,8 +245,44 @@ That's the essence of Cliplin.
 
 ## Ready to Get Started?
 
+### Installation
+
+**Option 1: Install from PyPI (when available)**
 ```bash
 uv tool install cliplin
+```
+
+**Option 2: Install directly from GitHub repository**
+```bash
+# Install from main branch
+uv tool install git+https://github.com/Rodrigonavarro23/cliplin.git
+
+# Or install from a specific branch
+uv tool install git+https://github.com/Rodrigonavarro23/cliplin.git@main
+```
+
+**Option 3: Install with pip from GitHub**
+```bash
+pip install git+https://github.com/Rodrigonavarro23/cliplin.git
+```
+
+**Option 4: Development installation**
+```bash
+# Clone the repository
+git clone https://github.com/Rodrigonavarro23/cliplin.git
+cd cliplin
+
+# Install in development mode
+uv pip install -e .
+# or
+pip install -e .
+```
+
+### Initialize Your Project
+
+After installation, initialize Cliplin in your project:
+
+```bash
 cliplin init --ai cursor
 ```
 
