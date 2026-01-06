@@ -226,9 +226,29 @@ cliplin tool --list             # List all available tools
 
 ## Requirements
 
-- Python 3.10 or higher
+- Python 3.10 or higher (Python 3.11 may have compatibility issues with ChromaDB on Windows)
 - [uv](https://github.com/astral-sh/uv) (Astral UV) for installation
 - A compatible AI assistant (Cursor, Claude Desktop, etc.)
+
+### Windows-Specific Requirements
+
+If you're installing Cliplin on Windows, you'll need:
+
+1. **Microsoft Visual C++ Build Tools** (Required for ChromaDB dependency `hnswlib`)
+   - Download and install from: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+   - Requires Microsoft Visual C++ 14.0 or greater
+   - Without this, you'll see an error: `error: Microsoft Visual C++ 14.0 or greater is required`
+   - **Important**: Install this BEFORE installing Cliplin
+
+2. **Python Version Compatibility**
+   - Recommended: Python 3.10 (most stable with ChromaDB on Windows)
+   - Python 3.11 may have compatibility issues with ChromaDB
+   - Verify your Python version: `python --version`
+
+3. **Path Considerations**
+   - Cliplin automatically handles Windows path compatibility
+   - Use absolute paths when possible for better reliability
+   - Ensure your project directory has write permissions
 
 ---
 
@@ -246,6 +266,36 @@ That's the essence of Cliplin.
 ## Ready to Get Started?
 
 ### Installation
+
+#### For Windows Users
+
+**Step 1: Install Prerequisites**
+
+1. **Install Microsoft Visual C++ Build Tools** (if not already installed):
+   - Download from: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+   - Run the installer and select "C++ build tools"
+   - This is required for ChromaDB's `hnswlib` dependency
+
+2. **Verify Python Installation**:
+   ```powershell
+   python --version
+   # Should show Python 3.10.x (3.11 may have issues)
+   ```
+
+3. **Install uv** (if not already installed):
+   ```powershell
+   # With pip
+   pip install uv
+   
+   # Or with PowerShell (recommended)
+   powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+   ```
+
+**Step 2: Install Cliplin**
+
+Choose one of the installation methods below (same as other platforms).
+
+#### Installation Methods
 
 **Option 1: Install from PyPI (when available)**
 ```bash
@@ -277,6 +327,28 @@ uv pip install -e .
 # or
 pip install -e .
 ```
+
+#### Windows Installation Troubleshooting
+
+If you encounter issues during installation:
+
+1. **"Microsoft Visual C++ 14.0 or greater is required"**
+   - Install Microsoft Visual C++ Build Tools (see Step 1 above)
+   - Restart your terminal/PowerShell after installation
+
+2. **Encoding errors when creating templates**
+   - Set environment variable: `$env:PYTHONIOENCODING="utf-8"` in PowerShell
+   - Or ensure your system locale supports UTF-8
+
+3. **ChromaDB indexing fails**
+   - Ensure you have write permissions in your project directory
+   - Try running PowerShell/Command Prompt as Administrator
+   - Check that the path length is reasonable (<260 characters recommended)
+
+4. **Python version issues**
+   - Use Python 3.10 if you encounter compatibility problems
+   - Create a virtual environment: `python -m venv .venv`
+   - Activate it: `.venv\Scripts\activate` (PowerShell) or `.venv\Scripts\activate.bat` (CMD)
 
 ### Initialize Your Project
 
