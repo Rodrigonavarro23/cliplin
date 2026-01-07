@@ -7,7 +7,7 @@
         "--client-type",
         "persistent",
         "--data-dir",
-        ".cliplin/data/context/chroma.sqlite3"
+        ".cliplin/data/context"
       ]
     }
   }

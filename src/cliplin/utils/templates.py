@@ -451,7 +451,7 @@ def create_cursor_mcp_config(target_dir: Path) -> None:
     mcp_file.parent.mkdir(parents=True, exist_ok=True)
     
     # ChromaDB database path relative to project root
-    chromadb_path = ".cliplin/data/context/chroma.sqlite3"
+    chromadb_path = ".cliplin/data/context"
     
     # MCP server configuration
     cliplin_server_config = {
