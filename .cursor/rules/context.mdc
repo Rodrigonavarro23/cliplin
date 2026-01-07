@@ -2,7 +2,7 @@
 alwaysApply: true
 ---
 
-## MANDATORY: Load Context Before Any Task
+## MANDATORY: Load Context Before any interaction with the user
 
 **CRITICAL RULE**: Before starting ANY planning, coding, or thinking task, you MUST:
 
