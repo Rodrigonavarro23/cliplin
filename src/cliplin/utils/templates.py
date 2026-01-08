@@ -9,16 +9,18 @@ from rich.console import Console
 console = Console()
 
 # AI tool configurations
-AI_TOOL_CONFIGS: Dict[str, Dict[str, str]] = {
+AI_TOOL_CONFIGS: Dict[str, Dict[str, Optional[str]]] = {
     "cursor": {
         "rules_dir": ".cursor/rules",
         "config_file": ".cursor/rules/context.mdc",
         "feature_processing_file": ".cursor/rules/feature-processing.mdc",
+        "context_protocol_loading_file": ".cursor/rules/context-protocol-loading.mdc",
     },
     "claude-desktop": {
         "rules_dir": ".claude",
         "config_file": ".claude/mcp_config.json",
-        "feature_processing_file": None,
+        "feature_processing_file": ".claude/feature-processing.md",
+        "context_protocol_loading_file": ".claude/context-protocol-loading.md",
     },
 }
 
@@ -443,6 +445,46 @@ def create_ai_tool_config(target_dir: Path, ai_tool: str) -> None:
         feature_content = get_cursor_feature_processing_content()
         feature_file.write_text(feature_content, encoding="utf-8")
         console.print(f"  [green]✓[/green] Created {config['feature_processing_file']}")
+    
+    # Create context-protocol-loading.mdc for Cursor
+    if ai_tool == "cursor" and config.get("context_protocol_loading_file"):
+        protocol_file = target_dir / config["context_protocol_loading_file"]
+        protocol_content = get_cursor_context_protocol_loading_content()
+        protocol_file.write_text(protocol_content, encoding="utf-8")
+        console.print(f"  [green]✓[/green] Created {config['context_protocol_loading_file']}")
+    
+    # Create feature-processing.md for Claude Desktop
+    if ai_tool == "claude-desktop" and config.get("feature_processing_file"):
+        feature_file = target_dir / config["feature_processing_file"]
+        feature_content = get_cursor_feature_processing_content()
+        feature_file.write_text(feature_content, encoding="utf-8")
+        console.print(f"  [green]✓[/green] Created {config['feature_processing_file']}")
+    
+    # Create context-protocol-loading.md for Claude Desktop
+    if ai_tool == "claude-desktop" and config.get("context_protocol_loading_file"):
+        protocol_file = target_dir / config["context_protocol_loading_file"]
+        protocol_content = get_cursor_context_protocol_loading_content()
+        protocol_file.write_text(protocol_content, encoding="utf-8")
+        console.print(f"  [green]✓[/green] Created {config['context_protocol_loading_file']}")
+    
+    # Create context.md for Claude Desktop (similar to context.mdc for Cursor)
+    if ai_tool == "claude-desktop":
+        context_file = target_dir / ".claude" / "context.md"
+        context_content = get_cursor_context_content()
+        context_file.write_text(context_content, encoding="utf-8")
+        console.print(f"  [green]✓[/green] Created .claude/context.md")
+        
+        # Create main instructions file that consolidates all rules
+        instructions_file = target_dir / ".claude" / "instructions.md"
+        instructions_content = get_claude_desktop_instructions_content()
+        instructions_file.write_text(instructions_content, encoding="utf-8")
+        console.print(f"  [green]✓[/green] Created .claude/instructions.md")
+        
+        # Create README with instructions on how to use the rules
+        readme_file = target_dir / ".claude" / "README.md"
+        readme_content = get_claude_desktop_readme_content()
+        readme_file.write_text(readme_content, encoding="utf-8")
+        console.print(f"  [green]✓[/green] Created .claude/README.md")
 
 
 def create_cursor_mcp_config(target_dir: Path) -> None:
@@ -838,5 +880,275 @@ Scenario: User login with OAuth
 - **Never modify** scenarios tagged with `@status:deprecated`
 - Always update `@changed` and `@status` tags when modifying scenarios
 - Use `@reason` tag to document why changes were made
+"""
+
+
+def get_cursor_context_protocol_loading_content() -> str:
+    """Get the content for .cursor/rules/context-protocol-loading.mdc"""
+    return """---
+alwaysApply: true
+---
+
+## Context Loading Protocol
+
+**CRITICAL RULE**: Before starting ANY planning, coding, debugging, fixing, or architectural task, AI assistants MUST follow this context loading protocol.
+
+### When to Load Context (Trigger Words and Actions)
+
+**MANDATORY**: You MUST load context from ChromaDB BEFORE any of these actions:
+
+#### Action Types Requiring Context:
+- **Debugging**: Finding and fixing bugs, investigating errors, troubleshooting issues
+- **Implementation**: Writing new code, implementing features, creating components
+- **Fixing**: Correcting errors, fixing bugs, resolving issues
+- **Architecture**: Making architectural decisions, designing systems, planning structure
+- **Refactoring**: Improving code structure, optimizing performance, cleaning up code
+
+#### Trigger Words (If user mentions these, LOAD CONTEXT FIRST):
+- **fix** (fix, repair, correct)
+- **improve** (improve, enhance, optimize)
+- **debug** (debug, troubleshoot, investigate)
+- **correct** (correct, fix, repair)
+- **implement** (implement, create, build)
+- **create** (create, build, make)
+- **modify** (modify, change, update)
+- **optimize** (optimize, improve, enhance)
+- **refactor** (refactor, restructure, reorganize)
+- **design** (design, plan, architect)
+- **plan** (plan, design, architect)
+- **resolve** (resolve, solve, fix)
+- **solve** (solve, fix, resolve)
+- **add** (add, create, implement)
+- **update** (update, modify, change)
+- **change** (change, modify, update)
+- **remove** (remove, delete, eliminate)
+- **enhance** (enhance, improve, optimize)
+
+**If ANY of these words appear in the user's request, you MUST load context BEFORE proceeding.**
+
+### Mandatory Context Loading Steps
+
+1. **Query ChromaDB Collections First**: Before beginning ANY task, you MUST query the relevant ChromaDB collections using the 'cliplin-context' MCP server to load context.
+
+2. **Determine Relevant Collections**: Based on the task domain, entities, and requirements, identify which collections contain relevant context:
+   - `business-and-architecture`: ADRs, business documentation, architectural decisions
+   - `features`: Feature files, scenarios, business requirements
+   - `tech-specs`: Technical specifications, implementation rules, coding conventions
+   - `uisi`: UI Intent specifications, user experience requirements
+
+3. **Use Semantic Queries**: Query collections using semantic search based on:
+   - Task domain (e.g., "authentication", "payment processing", "user management")
+   - Entities involved (e.g., "User", "Order", "Product")
+   - Use cases and requirements
+   - Related features or components
+   - Error messages or bug descriptions (for debugging)
+   - Component names or file paths (for fixing/refactoring)
+
+4. **Query Multiple Collections**: For comprehensive context, query ALL relevant collections:
+   - Start with `business-and-architecture` for business rules and ADRs
+   - Query `tech-specs` for technical constraints and implementation patterns
+   - Query `features` for related features and dependencies
+   - Query `uisi` if UI/UX work is involved
+
+5. **Never Proceed Without Context**: Do NOT start any task until you have:
+   - Queried and loaded relevant context from ChromaDB collections
+   - Reviewed the loaded context to understand constraints and requirements
+   - Verified that context is current (check for outdated files if needed)
+
+### Context Loading Examples
+
+**Example 1: Debugging (User says "fix the authentication error")**
+```
+1. Query 'tech-specs' collection: "authentication error handling"
+2. Query 'features' collection: "authentication login scenarios"
+3. Query 'business-and-architecture' collection: "authentication security ADRs"
+4. Review loaded context to understand expected behavior and error patterns
+5. THEN proceed with debugging
+```
+
+**Example 2: Implementation (User says "implement new payment functionality")**
+```
+1. Query 'features' collection: "payment processing scenarios"
+2. Query 'business-and-architecture' collection: "payment business rules"
+3. Query 'tech-specs' collection: "payment implementation patterns"
+4. Review loaded context before starting implementation
+```
+
+**Example 3: Fixing (User says "fix the bug in component X")**
+```
+1. Query 'tech-specs' collection: "[component-name] implementation rules"
+2. Query 'features' collection: "[feature-name] scenarios"
+3. Query 'business-and-architecture' collection: "related ADRs"
+4. Review loaded context to understand expected behavior
+5. THEN proceed with fixing
+```
+
+**Example 4: Architecture (User says "improve the system architecture")**
+```
+1. Query 'business-and-architecture' collection: "existing architecture ADRs"
+2. Query 'tech-specs' collection: "architectural patterns and constraints"
+3. Query 'features' collection: "system features and dependencies"
+4. Review loaded context to understand current architecture
+5. THEN propose improvements
+```
+
+### Context Update Verification
+
+After loading context, verify if any context files need reindexing:
+- Run `cliplin reindex --dry-run` to check if context files are up to date
+- If context files are outdated, ask user for confirmation before reindexing
+- Only proceed with the task after ensuring context is current and loaded
+
+### Benefits of Context Loading Protocol
+
+- **Reduced Ambiguity**: Loaded context provides clear constraints and requirements
+- **Consistency**: Ensures work aligns with existing architecture and patterns
+- **Efficiency**: Prevents rework by understanding dependencies early
+- **Quality**: Context-informed decisions lead to better implementations
+- **Token Efficiency**: Avoids wasting tokens on solutions that don't align with project standards
+- **Time Savings**: Prevents rework and iterations by getting it right the first time
+
+### Penalties for NOT Following This Protocol
+
+**CRITICAL**: Failure to load context before action will result in:
+
+#### 1. **Token Waste**
+- Generating code that doesn't align with project standards requires regeneration
+- Multiple iterations consume excessive tokens
+- Re-explaining context that was already documented wastes conversation tokens
+- **Cost**: Each iteration can waste 10,000-50,000+ tokens
+
+#### 2. **Reiterating Ideas**
+- Proposing solutions that were already rejected or documented
+- Suggesting patterns that don't fit the project architecture
+- Re-inventing solutions that already exist
+- **Impact**: User frustration, wasted time, inefficient development
+
+#### 3. **Code Not Aligned with Standards**
+- Code that violates project conventions and must be rewritten
+- Implementations that break existing patterns
+- Solutions that don't follow architectural decisions
+- **Impact**: Technical debt, maintenance issues, code review rejections
+
+#### 4. **Breaking Changes**
+- Modifications that break existing features
+- Changes that violate architectural constraints
+- Updates that don't consider dependencies
+- **Impact**: System instability, regression bugs, production issues
+
+#### 5. **Inconsistent Implementations**
+- Different patterns for similar problems
+- Inconsistent error handling or validation
+- Mixed coding styles and conventions
+- **Impact**: Codebase confusion, difficult maintenance, team friction
+
+#### 6. **Violations of Architectural Constraints**
+- Decisions that contradict ADRs
+- Patterns that violate technical specifications
+- Solutions that ignore business rules
+- **Impact**: Architectural drift, system degradation, refactoring costs
+
+### Enforcement
+
+This protocol is **MANDATORY** and must be followed before:
+- Starting any coding task
+- Planning feature implementation
+- Debugging or fixing issues
+- Modifying existing code
+- Creating new documentation
+- Making architectural decisions
+- Refactoring or optimizing code
+- Any action triggered by the keywords listed above
+
+**Remember**: Loading context takes seconds and saves hours. Skipping this step wastes tokens, time, and creates technical debt.
+
+**If you proceed without loading context, you are violating this protocol and will produce suboptimal results.**
+"""
+
+
+def get_claude_desktop_instructions_content() -> str:
+    """Get the consolidated instructions content for Claude Desktop."""
+    context_content = get_cursor_context_content()
+    feature_content = get_cursor_feature_processing_content()
+    protocol_content = get_cursor_context_protocol_loading_content()
+    
+    return f"""# Cliplin Project Instructions for Claude Desktop
+
+This file contains all the rules and protocols that Claude should follow when working on this project.
+
+## How to Use These Instructions
+
+**IMPORTANT**: These instructions should be loaded at the beginning of each conversation or session. You can:
+1. Copy and paste this entire file into Claude Desktop at the start of a conversation
+2. Reference this file when Claude asks about project rules
+3. Use the MCP server to access ChromaDB context (configured in `.claude/mcp_config.json`)
+
+---
+
+{context_content}
+
+---
+
+{feature_content}
+
+---
+
+{protocol_content}
+"""
+
+
+def get_claude_desktop_readme_content() -> str:
+    """Get the README content for Claude Desktop directory."""
+    return """# Claude Desktop Configuration for Cliplin
+
+This directory contains configuration files and rules for using Claude Desktop with this Cliplin project.
+
+## Files in this Directory
+
+- **`mcp_config.json`**: MCP server configuration for ChromaDB context access
+- **`instructions.md`**: Consolidated instructions file with all project rules (LOAD THIS FIRST)
+- **`context.md`**: Context indexing rules and ChromaDB collection mappings
+- **`feature-processing.md`**: Feature file processing and implementation rules
+- **`context-protocol-loading.md`**: Context loading protocol rules
+
+## How to Load Rules in Claude Desktop
+
+### Option 1: Load Instructions File (Recommended)
+
+At the start of each conversation, copy and paste the contents of `instructions.md` into Claude Desktop. This will load all project rules at once.
+
+### Option 2: Create a Claude Skill (Advanced)
+
+You can create a Claude Skill from this directory:
+
+1. Zip the entire `.claude` directory (excluding `mcp_config.json`)
+2. In Claude Desktop, go to **Settings > Extensions**
+3. Click "Advanced Settings" and find "Extension Developer"
+4. Click "Install Extension..." and select the ZIP file
+5. Claude will automatically apply these rules in relevant contexts
+
+### Option 3: Reference Individual Files
+
+You can reference individual rule files as needed:
+- For context loading: reference `context-protocol-loading.md`
+- For feature work: reference `feature-processing.md`
+- For indexing: reference `context.md`
+
+## MCP Server Configuration
+
+The `mcp_config.json` file configures the ChromaDB MCP server. This allows Claude to:
+- Query project context from ChromaDB collections
+- Access ADRs, features, TS4 specs, and UI Intent files
+- Load relevant context before starting any task
+
+Make sure the MCP server is properly configured in Claude Desktop's settings.
+
+## Important Notes
+
+- **Always load context first**: Before any coding, debugging, or implementation task, query ChromaDB collections
+- **Follow the protocol**: The context loading protocol is mandatory and prevents wasted tokens and misaligned code
+- **Update rules**: If you modify any rule files, reload them in Claude Desktop
+
+For more information about Cliplin, see the main project README.
 """
 

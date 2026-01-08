@@ -128,8 +128,9 @@ Feature: Cliplin CLI Tool
     And the MCP server configuration should be accessible to the AI tool (Cursor)
     And the AI tool should be able to query and update the ChromaDB collections via MCP
 
-  @status:implemented
+  @status:modified
   @changed:2024-01-15
+  @reason:Added-context-loading-protocol-requirement
   Scenario: Initialize project with AI rules and conventions
     Given I have the Cliplin CLI tool installed
     And I am in an empty directory or a new project directory
@@ -138,11 +139,13 @@ Feature: Cliplin CLI Tool
       | Rule File | Purpose |
       | .cursor/rules/context.mdc | Context indexing rules and ChromaDB collection mappings |
       | .cursor/rules/feature-processing.mdc | Feature file processing and implementation rules |
+      | .cursor/rules/context-protocol-loading.mdc | Context loading protocol rules |
     And the rule files should specify automatic indexing behavior for context files
     And the rule files should specify user confirmation requirements before indexing
     And the rule files should define metadata requirements for indexed documents
     And the rule files should specify feature lifecycle management (pending, implemented, deprecated)
     And the rule files should define impact analysis requirements for feature changes
+    And the rule files should define context loading protocol requiring AI assistants to query ChromaDB collections before starting any task
 
   @status:implemented
   @changed:2024-01-15

@@ -376,6 +376,35 @@ After installation, initialize Cliplin in your project:
 cliplin init --ai cursor
 ```
 
+### Configure Claude Desktop
+
+If you're using Claude Desktop, Cliplin creates rule files in the `.claude/` directory. To use these rules:
+
+**Step 1: Load Instructions at the Start of Each Conversation**
+
+At the beginning of each conversation in Claude Desktop, copy and paste the contents of `.claude/instructions.md` into the chat. This file contains all project rules consolidated in one place.
+
+**Quick Steps:**
+1. Open `.claude/instructions.md` in your editor
+2. Copy the entire contents (Cmd/Ctrl + A, then Cmd/Ctrl + C)
+3. Paste it into Claude Desktop at the start of your conversation
+4. Claude will now follow all project rules and protocols
+
+**Why This is Important:**
+- Ensures Claude loads context from ChromaDB before any task
+- Applies all technical rules and architectural constraints
+- Prevents wasted tokens and misaligned code
+- Maintains consistency with project specifications
+
+**Alternative: Create a Claude Skill (Advanced)**
+
+You can also create a Claude Skill from the `.claude/` directory for automatic rule loading:
+1. Zip the `.claude/` directory (excluding `mcp_config.json`)
+2. In Claude Desktop: **Settings > Extensions**
+3. Click "Advanced Settings" > "Extension Developer"
+4. Click "Install Extension..." and select the ZIP file
+5. Claude will automatically apply these rules in relevant contexts
+
 **Cliplin doesn't replace engineers, tools, or processes.  
 It replaces ambiguity.**
 
