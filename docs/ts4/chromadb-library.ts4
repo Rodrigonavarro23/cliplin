@@ -1,0 +1,58 @@
+ts4: "1.0"
+id: "chromadb-library"
+title: "ChromaDB as Library Usage"
+summary: "Rules for using ChromaDB as the context store library: client, collections, document operations, path resolution, and fingerprint store location."
+
+rules:
+  - |
+    ChromaDB client usage:
+    - Use `chromadb.PersistentClient(path=...)` for the project context store; path must be the directory that will contain the database files (e.g. `.cliplin/data/context`)
+    - ALWAYS pass an absolute, resolved path to the client: `path=str(db_path.parent.resolve())` (critical for Windows; see docs/ts4/windows-compatibility-file-operations.ts4)
+    - Use `chromadb.config.Settings(anonymized_telemetry=False, allow_reset=True)` when creating the client if project policy requires it
+    - Create the parent directory before instantiating the client: `db_path.parent.mkdir(parents=True, exist_ok=True)`
+    - Wrap client creation in try-except and log the resolved path on failure for debugging
+  - |
+    Collection management:
+    - Use `get_or_create_collection(name=..., metadata={...})` to obtain or create a collection; avoid assuming it exists
+    - Collection names must match the central mapping (e.g. business-and-architecture, features, tech-specs, uisi) when indexing project context files
+    - List collections via the client's list_collections API when verifying or discovering existing collections
+    - Do not hardcode collection names in multiple places; use the shared COLLECTION_MAPPINGS or equivalent from utils
+  - |
+    Document ID and metadata:
+    - Use file path relative to project root as document ID for context files (e.g. `docs/ts4/my-spec.ts4`) to enable upserts and avoid duplicates
+    - Include metadata for every indexed document: at least `file_path` (relative path), `type` (adr|project-doc|feature|ts4|ui-intent), `collection` (target collection name)
+    - Metadata must be serializable (strings, numbers, booleans, lists of same); ChromaDB does not accept arbitrary objects
+    - When adding documents, pass `ids`, `documents`, and optionally `metadatas` as lists of the same length
+  - |
+    Document operations:
+    - Add: use collection.add(ids=..., documents=..., metadatas=...) after checking if document already exists by ID; if it exists, use update instead of add to avoid duplicates
+    - Update: use collection.update(ids=..., documents=..., metadatas=...) for existing document IDs; embedding is recomputed if documents are provided and the collection uses an embedding function
+    - Query: use collection.query(query_texts=..., n_results=..., where=..., where_document=...) for semantic search; use where for metadata filters, where_document for content filters
+    - Get: use collection.get(ids=..., where=..., where_document=..., limit=..., offset=...) to fetch by ID or filters
+    - Delete: use collection.delete(ids=...) to remove documents by ID
+  - |
+    Path and project root:
+    - Context store path must be derived from project root: e.g. `project_root / ".cliplin" / "data" / "context"`
+    - Resolve project root consistently (e.g. cwd, or explicit argument); do not pass relative paths to ChromaDB
+    - Use pathlib.Path for all path construction; convert to str only when calling ChromaDB APIs
+  - |
+    Fingerprint store location (change detection):
+    - The fingerprint store (path → content hash for change detection) must live under the same context data path as the ChromaDB store (e.g. `.cliplin/data/context/fingerprints.json`)
+    - Use UTF-8 encoding for reading and writing the fingerprint store file; see docs/ts4/windows-compatibility-file-operations.ts4
+    - Fingerprint algorithm must be deterministic (e.g. SHA-256 of file content); same content must always yield the same fingerprint
+    - Update the fingerprint store after every successful add or update of a document in a collection so that "has changed?" and "list changed" logic remains accurate
+  - |
+    Error handling:
+    - Catch and handle ChromaDB errors (e.g. missing collection, invalid IDs) with clear messages
+    - Do not leave the client or collections in an inconsistent state; prefer explicit checks (e.g. get by ID before add) over relying on exception types for control flow when the API allows
+  - |
+    Shared usage by CLI and MCP:
+    - ChromaDB utilities (client, collection resolution, add/update/query/get/delete) must be implemented in a shared module (e.g. utils/chromadb.py) so that both the CLI (e.g. reindex command) and the storage MCP server use the same logic
+    - Collection mappings (directory → collection, file pattern → type) must be defined in one place and reused by CLI commands and MCP tools
+
+code_refs:
+  - "src/cliplin/utils/chromadb.py"
+  - "src/cliplin/commands/reindex.py"
+  - "docs/ts4/windows-compatibility-file-operations.ts4"
+  - "docs/ts4/cliplin-cli-stack.ts4"
+  - "docs/adrs/002-chromadb-rag-context-base.md"

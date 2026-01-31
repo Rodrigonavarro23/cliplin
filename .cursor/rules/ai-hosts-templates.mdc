@@ -1,0 +1,31 @@
+---
+alwaysApply: true
+---
+
+## AI hosts: Cursor and Claude Desktop
+
+When you change **templates** or **MCP-related commands** in this project, you MUST consider **all supported AI hosts** so configs stay consistent.
+
+### Supported hosts
+
+- **Cursor**: MCP config in `.cursor/mcp.json` → `mcpServers["cliplin-context"]`
+- **Claude Desktop**: MCP config in `.claude/mcp_config.json` → `mcpServers["cliplin-context"]`
+
+### Rules
+
+1. **Same MCP command for all hosts**  
+   Use `"command": "uv", "args": ["run", "cliplin", "mcp"]` for both Cursor and Claude Desktop. Do not use bare `cliplin mcp` in generated configs (it can resolve to a global install and cause "No server info found" or wrong version).
+
+2. **Update both config generators together**  
+   In `src/cliplin/utils/templates.py`:
+   - `create_cursor_mcp_config` → writes `.cursor/mcp.json`
+   - `create_claude_desktop_mcp_config` → writes `.claude/mcp_config.json`  
+   If you change the MCP command, args, or env in one, change the other in the same edit. Do not update only Cursor or only Claude Desktop.
+
+3. **New hosts**  
+   If adding support for another MCP host (e.g. another IDE), add a config generator in `templates.py`, use the same command pattern unless the host requires otherwise, and document the config path and quirks in `docs/ts4/ai-host-integration.ts4`.
+
+### Reference
+
+- Technical rules: `docs/ts4/ai-host-integration.ts4`
+- MCP server instructions: `docs/adrs/004-mcp-server-instructions.md`, `docs/ts4/system-modules.ts4` (rule "MCP server must expose instructions")

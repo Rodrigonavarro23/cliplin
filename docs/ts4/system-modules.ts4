@@ -1,0 +1,65 @@
+ts4: "1.0"
+id: "system-modules"
+title: "System Modules and Shared Logic"
+summary: "Module layout and shared logic between CLI commands and MCP: context locations, change detection, and future CLI command for validating changes using the same methods as the MCP."
+
+rules:
+  - |
+    Module layout:
+    - `src/cliplin/cli.py`: CLI entry point and command registration only; no business logic for context or storage
+    - `src/cliplin/commands/`: One module per CLI command (init, validate, reindex, feature, adr, tool); commands orchestrate and call shared utils
+    - `src/cliplin/utils/`: Shared functionality used by both CLI and MCP: chromadb (client, collections, document ops), templates, tools; add fingerprint/change-detection here so it is reusable
+    - MCP server: When the storage MCP is implemented, it must call the same utils (e.g. chromadb, fingerprint store) as the CLI; no duplicate implementation of "list collections", "add document", "query", "list changed documents", etc.
+  - |
+    Context locations as single source of truth:
+    - Context directories and collection mappings (docs/adrs, docs/business, docs/features, docs/ts4, docs/ui-intent → business-and-architecture, features, tech-specs, uisi) must be defined in one place (e.g. COLLECTION_MAPPINGS in utils/chromadb.py or a dedicated config module)
+    - CLI commands and MCP tools must resolve "which files belong to which collection" and "which directories to scan" from this single definition
+    - Adding a new context type (e.g. new directory or collection) requires changing only this mapping and any docs; CLI and MCP then both see the new locations
+  - |
+    Change detection and fingerprint logic (shared):
+    - Logic for "compute fingerprint of file", "has document changed?", "list documents that need reindexing" must live in a shared module (e.g. utils/fingerprint.py or utils/chromadb.py) so that both the storage MCP and the CLI can use it
+    - The same functions must be callable by: (1) MCP tools (e.g. "check if document changed", "list changed documents"), (2) CLI command that reviews all context locations and reports what would be reindexed (e.g. future `cliplin changes` or extended `cliplin reindex --dry-run`)
+    - Do not implement change detection twice (once in MCP, once in CLI); one implementation, two consumers
+  - |
+    Future CLI command for validating changes:
+    - A future feature may add a CLI command (e.g. `cliplin changes` or `cliplin reindex --dry-run` enhanced) that: scans all context locations (docs/adrs, docs/business, docs/features, docs/ts4, docs/ui-intent), evaluates which files are new or changed using the fingerprint store, and reports a list of files that need reindexing without performing the reindex
+    - This command must use the same methods as the MCP: same "list changed documents" function, same collection/directory mapping, same fingerprint store path and format
+    - Output may be human-readable (table or list) and/or machine-readable (e.g. JSON lines) for scripting; exit code 0 when there are no changes, non-zero when there are changes (or the inverse, as documented)
+  - |
+    Reindex command and shared logic:
+    - The reindex command (existing or future) should use the same "list changed documents" (or "scan context locations and compare with fingerprint store") as the MCP and the future "validate changes" command, so that dry-run and actual reindex both rely on the same notion of "what changed"
+    - After successfully indexing a document (add or update), update the fingerprint store via the shared module; both CLI reindex and MCP add/update must trigger this update so that the next "list changed" or "has changed?" is accurate
+  - |
+    Incremental reindex (MUST):
+    - The reindex CLI command MUST use the FingerprintStore protocol (or shared fingerprint module) to determine whether each context file has changed on disk
+    - Only files that are new (no fingerprint) or modified (fingerprint differs from current file content) MUST trigger ContextStore.add_documents or ContextStore.update_documents
+    - Files whose fingerprint matches the current file content MUST be skipped; do not call add_documents or update_documents for them
+    - This rule ensures efficiency (no redundant embeddings), consistency with dry-run output ("Unchanged / Skip"), and alignment with MCP tools that use the same "has changed?" logic
+  - |
+    MCP server must expose instructions (MUST):
+    - The Cliplin MCP server MUST expose server instructions so that the host (e.g. Cursor, Claude Desktop) receives server info in the MCP handshake (initialize response)
+    - When using FastMCP (or equivalent), the server MUST be constructed with the `instructions` parameter set to a non-empty string describing the server's purpose and how to use it (e.g. which tools to call, which collections exist)
+    - Without instructions, some hosts send a GetInstructions action and log "No server info found" or treat the server as misconfigured; the server must always return both serverInfo and instructions in the initialize response
+    - Instructions should be short, actionable text (e.g. "Use chroma_query_documents to load context; collections: business-and-architecture, features, tech-specs, uisi")
+  - |
+    Dependency direction:
+    - Commands and MCP depend on utils; utils do not depend on commands or MCP
+    - Utils may depend on ChromaDB library and standard library only; avoid pulling in CLI-specific (e.g. Rich) or MCP-specific (e.g. MCP SDK) code into core fingerprint/chromadb utils if possible, or pass in callbacks/printers for output
+  - |
+    Testing:
+    - Shared logic (fingerprint, list changed, collection for file) must be unit-testable without starting the CLI or MCP server
+    - Integration tests may run the CLI command and/or MCP tools and assert they produce consistent results (e.g. same list of changed files when given the same project state)
+
+code_refs:
+  - "src/cliplin/cli.py"
+  - "src/cliplin/commands/reindex.py"
+  - "src/cliplin/utils/chromadb.py"
+  - "src/cliplin/protocols.py"
+  - "docs/ts4/chromadb-library.ts4"
+  - "docs/ts4/low-coupling-protocols.ts4"
+  - "docs/ts4/ai-host-integration.ts4"
+  - "docs/features/mcp-storage.feature"
+  - "src/cliplin/mcp_server.py"
+  - "docs/adrs/002-chromadb-rag-context-base.md"
+  - "docs/adrs/003-incremental-context-reindexing.md"
+  - "docs/adrs/004-mcp-server-instructions.md"

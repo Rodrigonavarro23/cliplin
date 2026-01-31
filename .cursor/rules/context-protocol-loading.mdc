@@ -1,0 +1,178 @@
+---
+alwaysApply: true
+---
+
+## Context Loading Protocol
+
+**CRITICAL RULE**: Before starting ANY planning, coding, debugging, fixing, or architectural task, AI assistants MUST follow this context loading protocol.
+
+### When to Load Context (Trigger Words and Actions)
+
+**MANDATORY**: You MUST load context from ChromaDB BEFORE any of these actions:
+
+#### Action Types Requiring Context:
+- **Debugging**: Finding and fixing bugs, investigating errors, troubleshooting issues
+- **Implementation**: Writing new code, implementing features, creating components
+- **Fixing**: Correcting errors, fixing bugs, resolving issues
+- **Architecture**: Making architectural decisions, designing systems, planning structure
+- **Refactoring**: Improving code structure, optimizing performance, cleaning up code
+
+#### Trigger Words (If user mentions these, LOAD CONTEXT FIRST):
+- **fix** (fix, repair, correct)
+- **improve** (improve, enhance, optimize)
+- **debug** (debug, troubleshoot, investigate)
+- **correct** (correct, fix, repair)
+- **implement** (implement, create, build)
+- **create** (create, build, make)
+- **modify** (modify, change, update)
+- **optimize** (optimize, improve, enhance)
+- **refactor** (refactor, restructure, reorganize)
+- **design** (design, plan, architect)
+- **plan** (plan, design, architect)
+- **resolve** (resolve, solve, fix)
+- **solve** (solve, fix, resolve)
+- **add** (add, create, implement)
+- **update** (update, modify, change)
+- **change** (change, modify, update)
+- **remove** (remove, delete, eliminate)
+- **enhance** (enhance, improve, optimize)
+
+**If ANY of these words appear in the user's request, you MUST load context BEFORE proceeding.**
+
+### Mandatory Context Loading Steps
+
+1. **Query ChromaDB Collections First**: Before beginning ANY task, you MUST query the relevant ChromaDB collections using the 'cliplin-context' MCP server to load context.
+
+2. **Determine Relevant Collections**: Based on the task domain, entities, and requirements, identify which collections contain relevant context:
+   - `business-and-architecture`: ADRs, business documentation, architectural decisions
+   - `features`: Feature files, scenarios, business requirements
+   - `tech-specs`: Technical specifications, implementation rules, coding conventions
+   - `uisi`: UI Intent specifications, user experience requirements
+
+3. **Use Semantic Queries**: Query collections using semantic search based on:
+   - Task domain (e.g., "authentication", "payment processing", "user management")
+   - Entities involved (e.g., "User", "Order", "Product")
+   - Use cases and requirements
+   - Related features or components
+   - Error messages or bug descriptions (for debugging)
+   - Component names or file paths (for fixing/refactoring)
+
+4. **Query Multiple Collections**: For comprehensive context, query ALL relevant collections:
+   - Start with `business-and-architecture` for business rules and ADRs
+   - Query `tech-specs` for technical constraints and implementation patterns
+   - Query `features` for related features and dependencies
+   - Query `uisi` if UI/UX work is involved
+
+5. **Never Proceed Without Context**: Do NOT start any task until you have:
+   - Queried and loaded relevant context from ChromaDB collections
+   - Reviewed the loaded context to understand constraints and requirements
+   - Verified that context is current (check for outdated files if needed)
+
+### Context Loading Examples
+
+**Example 1: Debugging (User says "fix the authentication error")**
+```
+1. Query 'tech-specs' collection: "authentication error handling"
+2. Query 'features' collection: "authentication login scenarios"
+3. Query 'business-and-architecture' collection: "authentication security ADRs"
+4. Review loaded context to understand expected behavior and error patterns
+5. THEN proceed with debugging
+```
+
+**Example 2: Implementation (User says "implement new payment functionality")**
+```
+1. Query 'features' collection: "payment processing scenarios"
+2. Query 'business-and-architecture' collection: "payment business rules"
+3. Query 'tech-specs' collection: "payment implementation patterns"
+4. Review loaded context before starting implementation
+```
+
+**Example 3: Fixing (User says "fix the bug in component X")**
+```
+1. Query 'tech-specs' collection: "[component-name] implementation rules"
+2. Query 'features' collection: "[feature-name] scenarios"
+3. Query 'business-and-architecture' collection: "related ADRs"
+4. Review loaded context to understand expected behavior
+5. THEN proceed with fixing
+```
+
+**Example 4: Architecture (User says "improve the system architecture")**
+```
+1. Query 'business-and-architecture' collection: "existing architecture ADRs"
+2. Query 'tech-specs' collection: "architectural patterns and constraints"
+3. Query 'features' collection: "system features and dependencies"
+4. Review loaded context to understand current architecture
+5. THEN propose improvements
+```
+
+### Context Update Verification
+
+After loading context, verify if any context files need reindexing:
+- Run `cliplin reindex --dry-run` to check if context files are up to date
+- If context files are outdated, ask user for confirmation before reindexing
+- Only proceed with the task after ensuring context is current and loaded
+
+### Benefits of Context Loading Protocol
+
+- **Reduced Ambiguity**: Loaded context provides clear constraints and requirements
+- **Consistency**: Ensures work aligns with existing architecture and patterns
+- **Efficiency**: Prevents rework by understanding dependencies early
+- **Quality**: Context-informed decisions lead to better implementations
+- **Token Efficiency**: Avoids wasting tokens on solutions that don't align with project standards
+- **Time Savings**: Prevents rework and iterations by getting it right the first time
+
+### Penalties for NOT Following This Protocol
+
+**CRITICAL**: Failure to load context before action will result in:
+
+#### 1. **Token Waste**
+- Generating code that doesn't align with project standards requires regeneration
+- Multiple iterations consume excessive tokens
+- Re-explaining context that was already documented wastes conversation tokens
+- **Cost**: Each iteration can waste 10,000-50,000+ tokens
+
+#### 2. **Reiterating Ideas**
+- Proposing solutions that were already rejected or documented
+- Suggesting patterns that don't fit the project architecture
+- Re-inventing solutions that already exist
+- **Impact**: User frustration, wasted time, inefficient development
+
+#### 3. **Code Not Aligned with Standards**
+- Code that violates project conventions and must be rewritten
+- Implementations that break existing patterns
+- Solutions that don't follow architectural decisions
+- **Impact**: Technical debt, maintenance issues, code review rejections
+
+#### 4. **Breaking Changes**
+- Modifications that break existing features
+- Changes that violate architectural constraints
+- Updates that don't consider dependencies
+- **Impact**: System instability, regression bugs, production issues
+
+#### 5. **Inconsistent Implementations**
+- Different patterns for similar problems
+- Inconsistent error handling or validation
+- Mixed coding styles and conventions
+- **Impact**: Codebase confusion, difficult maintenance, team friction
+
+#### 6. **Violations of Architectural Constraints**
+- Decisions that contradict ADRs
+- Patterns that violate technical specifications
+- Solutions that ignore business rules
+- **Impact**: Architectural drift, system degradation, refactoring costs
+
+### Enforcement
+
+This protocol is **MANDATORY** and must be followed before:
+- Starting any coding task
+- Planning feature implementation
+- Debugging or fixing issues
+- Modifying existing code
+- Creating new documentation
+- Making architectural decisions
+- Refactoring or optimizing code
+- Any action triggered by the keywords listed above
+
+**Remember**: Loading context takes seconds and saves hours. Skipping this step wastes tokens, time, and creates technical debt.
+
+**If you proceed without loading context, you are violating this protocol and will produce suboptimal results.**

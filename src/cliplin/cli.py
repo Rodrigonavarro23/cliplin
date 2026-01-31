@@ -13,6 +13,7 @@ from cliplin.commands.reindex import reindex_command
 from cliplin.commands.feature import feature_apply_command
 from cliplin.commands.tool import tool_command
 from cliplin.commands.adr import adr_generate_command
+from cliplin.commands.mcp import mcp_command
 
 app = typer.Typer(
     name="cliplin",
@@ -71,10 +72,12 @@ def main(
     ),
 ) -> None:
     """Cliplin CLI - Initialize and manage Cliplin projects."""
+    # When running as MCP server (stdio), do not print banner or anything to stdout
+    if len(sys.argv) >= 2 and sys.argv[1] == "mcp":
+        return
     # Show banner (skip if version flag is set, as it will exit)
     if not version:
         print_cliplin_banner()
-    
     # Validate Python version
     if sys.version_info < (3, 10):
         console.print(
@@ -96,6 +99,7 @@ adr_app.command(name="generate")(adr_generate_command)
 app.command(name="init")(init_command)
 app.command(name="validate")(validate_command)
 app.command(name="reindex")(reindex_command)
+app.command(name="mcp")(mcp_command)
 app.command(name="tool")(tool_command)
 app.add_typer(feature_app)
 app.add_typer(adr_app)

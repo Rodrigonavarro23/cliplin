@@ -201,3 +201,25 @@ It makes the **problem smaller, clearer, and executable**.
 When problems are described properly, both humans and AI perform better.
 
 That is the essence of Cliplin.
+
+---
+
+## 9. Context Access via MCP (Model Context Protocol)
+
+Cliplin exposes the context store to AI tools (e.g. Cursor, Claude Desktop) via the **Model Context Protocol (MCP)**. This allows the AI to query indexed specifications semantically without opening every file.
+
+### How the MCP server is started
+
+- **Configuration**: The host (Cursor, Claude Desktop, etc.) reads a config file (e.g. `.cursor/mcp.json`) that declares available MCP servers and how to run them.
+- **Command**: For Cliplin, the server is started by running `cliplin mcp` (or the configured command). The host launches this process and communicates over **stdio** (stdin/stdout); no network port is used.
+- **Working directory**: The host typically starts the process with the **project root** as the current working directory. Cliplin assumes `cwd` is the project root when resolving paths (e.g. `.cliplin/data/context/`, `docs/ts4/`).
+- **Clean stdio**: The `cliplin mcp` command must not print banners, help text, or any extra output to stdout. Only MCP protocol messages go over stdio; any other output would break the protocol.
+- **Server instructions**: The MCP server must expose **instructions** (a short description of its purpose and how to use it) in the MCP handshake. Without this, some hosts (e.g. Cursor) send GetInstructions, get no usable response, and log "No server info found." The server must always return both serverInfo and instructions so that the host can display the server correctly and the AI knows how to use it.
+
+### Role of the context server
+
+The MCP server exposes tools such as: list collections, query documents by semantic search, add/update/delete documents, and check whether documents have changed (fingerprint store). These tools allow the AI to load relevant context (ADRs, features, TS4, UI intent) before answering or generating code, in line with the rule *"Never proceed without context."*
+
+### Supported hosts and config consistency
+
+Supported AI hosts include **Cursor** (`.cursor/mcp.json`) and **Claude Desktop** (`.claude/mcp_config.json`). When changing how the MCP server is started (e.g. command or args in init templates), the same command must be used for all hosts so that every host runs the project's Cliplin with the same behavior. See `docs/ts4/ai-host-integration.ts4` for technical rules and the checklist when modifying templates or MCP-related commands.

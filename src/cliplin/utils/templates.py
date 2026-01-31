@@ -492,19 +492,11 @@ def create_cursor_mcp_config(target_dir: Path) -> None:
     mcp_file = target_dir / ".cursor" / "mcp.json"
     mcp_file.parent.mkdir(parents=True, exist_ok=True)
     
-    # ChromaDB database path relative to project root
-    chromadb_path = ".cliplin/data/context"
-    
-    # MCP server configuration
+    # Cliplin Storage MCP server (uses cwd as project root; context store at .cliplin/data/context).
+    # Use "uv run cliplin mcp" so Cursor runs the project's cliplin (with instructions); "cliplin" alone may resolve to a global install and cause "No server info found".
     cliplin_server_config = {
-        "command": "uvx",
-        "args": [
-            "chroma-mcp",
-            "--client-type",
-            "persistent",
-            "--data-dir",
-            chromadb_path
-        ]
+        "command": "uv",
+        "args": ["run", "cliplin", "mcp"]
     }
     
     # Read existing config if it exists
@@ -541,19 +533,11 @@ def create_claude_desktop_mcp_config(target_dir: Path) -> None:
     mcp_file = target_dir / ".claude" / "mcp_config.json"
     mcp_file.parent.mkdir(parents=True, exist_ok=True)
     
-    # ChromaDB database path relative to project root
-    chromadb_path = ".cliplin/data/context/chroma.sqlite3"
-    
-    # MCP server configuration
+    # Cliplin Storage MCP server (uses cwd as project root; context store at .cliplin/data/context).
+    # Use "uv run cliplin mcp" so the host runs the project's cliplin (with instructions); "cliplin" alone may resolve to a global install.
     cliplin_server_config = {
-        "command": "uvx",
-        "args": [
-            "chroma-mcp",
-            "--client-type",
-            "persistent",
-            "--data-dir",
-            chromadb_path
-        ]
+        "command": "uv",
+        "args": ["run", "cliplin", "mcp"]
     }
     
     # Read existing config if it exists

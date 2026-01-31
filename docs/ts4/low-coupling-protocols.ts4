@@ -1,0 +1,64 @@
+ts4: "1.0"
+id: "low-coupling-protocols"
+title: "Low Coupling via Protocols (Interfaces)"
+summary: "Hide concrete implementations behind interfaces; in Python use Protocol (typing.Protocol) or ABC so that callers depend on the contract, not the implementation."
+
+rules:
+  - |
+    Principle: depend on abstractions, not concretions.
+    - Callers (commands, MCP tools, services) must depend on an interface (contract), not on the concrete class or module that implements it.
+    - In Python, express the contract as a typing.Protocol or an abc.ABC; the real implementation (e.g. ChromaDB, JSON file) lives behind that contract.
+    - This reduces coupling, eases testing (inject mocks/fakes), and allows swapping implementations (e.g. another vector store, another fingerprint backend) without changing callers.
+  - |
+    Use typing.Protocol for structural subtyping (recommended in Python 3.10+).
+    - Define a Protocol class with the methods that the caller needs; the method signatures form the contract.
+    - Any class that implements those methods (same names and compatible signatures) satisfies the protocol without explicit inheritance.
+    - Example:
+      ```python
+      from typing import Protocol
+      class ContextStore(Protocol):
+          def list_collections(self) -> list[str]: ...
+          def get_collection(self, name: str): ...
+          def add_documents(self, collection: str, ids: list[str], documents: list[str], metadatas: list[dict] | None = None) -> int: ...
+      ```
+    - Implementations (e.g. ChromaDBContextStore) provide the real logic; callers receive a ContextStore (protocol) and call only protocol methods.
+  - |
+    Use abc.ABC when you need inheritance or default behavior.
+    - If the contract should allow default implementations or shared base logic, use abc.ABC and abstractmethod for methods that must be overridden.
+    - Subclasses explicitly inherit from the ABC; use when you want nominal typing (is-a relationship) and optional default methods.
+    - Prefer Protocol when you only need a contract (structural typing); use ABC when you need a base class with shared code or lifecycle.
+  - |
+    Where to define protocols:
+    - Define protocols in a dedicated module (e.g. protocols.py or contracts.py) or at the top of the domain layer that uses them.
+    - Keep protocol definitions stable and small; add methods only when needed by callers. Avoid leaking implementation details (e.g. ChromaDB-specific types) in the protocol signature; use generic types (list, dict, str) or domain types.
+  - |
+    Dependency injection and resolution:
+    - Callers receive the implementation via constructor, function argument, or a single resolution point (e.g. factory or container). Avoid callers instantiating the concrete class directly.
+    - Example: a command or MCP tool receives ContextStore as an argument, or gets it from a get_context_store(project_root) function that returns the protocol type; the factory (e.g. in utils) decides which concrete implementation to return.
+    - In tests, inject a fake or mock that implements the same protocol.
+  - |
+    Concrete implementations:
+    - Implementations (e.g. ChromaDB-backed store, JSON-backed fingerprint store) live in separate modules from the protocol. They implement all protocol methods and may depend on third-party libraries (chromadb, etc.).
+    - The module that wires the application (e.g. CLI entry, MCP server) or a factory function is the only place that should know which concrete class to use; the rest of the code uses the protocol type.
+  - |
+    Naming and files:
+    - Name protocols after the capability (e.g. ContextStore, FingerprintStore, CollectionMappingProvider). Suffix with Protocol only if it avoids ambiguity (e.g. ContextStoreProtocol).
+    - Keep one or a few related protocols per module; do not put all protocols in a single large file if the project grows.
+  - |
+    Type hints:
+    - Annotate function parameters and return types with the protocol type, not the concrete class. Example: def reindex(store: ContextStore, project_root: Path) -> None.
+    - Use from __future__ import annotations if you need forward references or to avoid quoting the protocol name in the same file.
+  - |
+    Do not:
+    - Import the concrete implementation in a caller module only to satisfy type hints; use the protocol type.
+    - Put business logic inside the protocol definition; protocols define shape (methods and signatures), not behavior.
+    - Expose implementation-specific types (e.g. chromadb.Collection) in the protocol; wrap or map them to generic or domain types so that callers stay implementation-agnostic.
+
+code_refs:
+  - "src/cliplin/protocols.py"
+  - "src/cliplin/utils/chromadb.py"
+  - "src/cliplin/utils/fingerprint.py"
+  - "src/cliplin/commands/reindex.py"
+  - "src/cliplin/mcp_server.py"
+  - "docs/ts4/system-modules.ts4"
+  - "docs/ts4/chromadb-library.ts4"

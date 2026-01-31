@@ -17,7 +17,7 @@ Feature: Generate ADR Technical Documentation Prompt from Repository
     And the CLI should generate a structured prompt with instructions for AI
     And the prompt should include:
       | Section | Content |
-      | Objective | Create a technical ADR documenting the library/SDK following Cliplin framework standards |
+      | Objective | Create a technical ADR documenting the repository following Cliplin framework standards |
       | Repository Information | Path or URL to analyze |
       | Analysis Steps | Step-by-step instructions to analyze the repository |
       | ADR Structure | Required ADR sections and format |

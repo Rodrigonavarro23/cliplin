@@ -1,0 +1,36 @@
+ts4: "1.0"
+id: "ai-host-integration"
+title: "AI Host Integration (Cursor, Claude Desktop)"
+summary: "Supported AI hosts, MCP config locations, and rules so that template and command changes apply consistently to all hosts."
+
+rules:
+  - |
+    Supported AI hosts:
+    - **Cursor**: config file `.cursor/mcp.json`; key `mcpServers["cliplin-context"]`; host runs the MCP server process with project root as cwd when mcp.json is in the project
+    - **Claude Desktop**: config file `.claude/mcp_config.json`; key `mcpServers["cliplin-context"]`; same MCP server, different config path
+    - Other MCP-compatible hosts may be added later; each has its own config file and location
+  - |
+    MCP command must be consistent across hosts (MUST):
+    - The command used to start the Cliplin MCP server MUST be the same for all supported hosts: use `uv run cliplin mcp` so the host runs the project's cliplin (with instructions); do not use bare `cliplin mcp` in templates, as it may resolve to a global install and cause "No server info found" or wrong version
+    - In code: `create_cursor_mcp_config` and `create_claude_desktop_mcp_config` in `src/cliplin/utils/templates.py` MUST set the same command and args: `"command": "uv", "args": ["run", "cliplin", "mcp"]`
+  - |
+    When changing templates or MCP-related commands (MUST):
+    - When modifying MCP server startup (command, args, env), init templates that write MCP config, or CLI behavior that affects how AI hosts run Cliplin, you MUST update **all** supported host config generators in the same change
+    - Update both `create_cursor_mcp_config` and `create_claude_desktop_mcp_config` together; do not change only one
+    - Use the same command pattern and args for Cursor and Claude Desktop unless a host-specific quirk is documented
+    - If adding a new host (e.g. another IDE or MCP client), add its config generator and document the config file path and any quirks in this TS4 or in docs/business/framework.md
+  - |
+    Host-specific quirks (document here when discovered):
+    - Cursor: may send GetInstructions after initialize; server must expose `instructions` in initialize response (see ADR-004, system-modules TS4). Cursor typically uses project root as cwd when mcp.json is in the project
+    - Claude Desktop: same MCP protocol; config path is `.claude/mcp_config.json`. Same command pattern as Cursor
+  - |
+    Checklist before merging changes to templates or MCP command:
+    - [ ] create_cursor_mcp_config and create_claude_desktop_mcp_config both use the same command/args
+    - [ ] Command is `uv run cliplin mcp` (or documented exception)
+    - [ ] Any new host has its config generator and is listed in this TS4
+
+code_refs:
+  - "src/cliplin/utils/templates.py"
+  - "docs/adrs/004-mcp-server-instructions.md"
+  - "docs/ts4/system-modules.ts4"
+  - "docs/business/framework.md"
