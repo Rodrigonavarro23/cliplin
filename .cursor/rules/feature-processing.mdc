@@ -118,6 +118,7 @@ When a user asks to implement a feature or work with `.feature` files:
      * **Reindex the updated feature file**: Run `cliplin reindex docs/features/feature-name.feature` to update the context store
      * If you created or modified any context files (ADRs, TS4, business docs), reindex them as well
      * This ensures the context remains synchronized with the implementation
+   - **Cross-project reference update (MANDATORY)**: After implementing or evolving a feature or solution, follow `docs/ts4/cross-references-on-evolution.ts4`: search the **entire project** for all references to the same concepts, entities, or contracts (other features in docs/features/, README, docs/business/, docs/adrs/, docs/ts4/, templates in src/cliplin/utils/templates.py, .cursor/rules/) and update them so the project stays consistent. Do not leave other features, docs, or templates pointing at old wording, names, or behavior.
 
 ### When User Requests Feature Modification
 
@@ -180,6 +181,7 @@ When a user asks to modify an existing feature:
      * Deprecated scenarios should have `@status:deprecated` and should not be modified
      * Modified scenarios should be updated to `@status:implemented` after completion
    - Update documentation if needed
+   - **Cross-project reference update (MANDATORY)**: Follow `docs/ts4/cross-references-on-evolution.ts4`: search the project for all references to the same concepts, entities, or contracts (other features, docs, templates, rules) and update them so the project stays consistent.
 
 ### Scenario Status Tags Reference
 

@@ -25,7 +25,11 @@ When you change **templates** or **MCP-related commands** in this project, you M
 3. **New hosts**  
    If adding support for another MCP host (e.g. another IDE), add a config generator in `templates.py`, use the same command pattern unless the host requires otherwise, and document the config path and quirks in `docs/ts4/ai-host-integration.ts4`.
 
+4. **Cross-project reference update**  
+   When changing templates or solutions that affect a shared concept (e.g. MCP, context store, capability name, config path), follow `docs/ts4/cross-references-on-evolution.ts4`: search the **entire project** for all references (other features in docs/features/, README, docs/business/, docs/adrs/, docs/ts4/, other templates, .cursor/rules/) and update them so the project stays consistent. Do not leave features, docs, or other templates pointing at old wording or behavior.
+
 ### Reference
 
 - Technical rules: `docs/ts4/ai-host-integration.ts4`
+- Cross-project references on evolution: `docs/ts4/cross-references-on-evolution.ts4`
 - MCP server instructions: `docs/adrs/004-mcp-server-instructions.md`, `docs/ts4/system-modules.ts4` (rule "MCP server must expose instructions")
