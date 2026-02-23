@@ -53,13 +53,13 @@ This project uses Cliplin for AI-assisted development driven by specifications.
 - `docs/adrs/` - Architecture Decision Records
 - `docs/business/` - Business documentation
 - `docs/features/` - Feature files (Gherkin)
-- `docs/ts4/` - Technical specifications
+- `docs/tdrs/` - Technical Decision Records (TDR)
 - `docs/ui-intent/` - UI Intent specifications
 
 ## Getting Started
 
 1. Add your feature files to `docs/features/`
-2. Add your TS4 specifications to `docs/ts4/`
+2. Add your TDR specifications to `docs/tdrs/` (see `docs/business/tdr.md` for format)
 3. Add your business documentation to `docs/business/`
 4. Run `cliplin reindex` to index your context files
 """
@@ -114,15 +114,21 @@ Cliplin is built on four complementary specification pillars, each with a precis
 - **Key principle**: Emphasizes semantic meaning over visual appearance
 - **Usage**: Allows AI to generate UI code without guessing user experience decisions
 
-#### 3. TS4 – Technical Specification Files (YAML)
-- **Purpose**: Define *how software must be implemented*
-- **Location**: `docs/ts4/*.ts4`
-- **Key principle**: TS4 does not describe what to build. It defines how to build it correctly.
-- **Contains**: Coding conventions, naming rules, validation strategies, allowed/forbidden patterns, project-specific technical decisions
-- **Format**: YAML with `ts4`, `id` (kebab-case), `title`, `summary`, `rules[]`, optional `code_refs[]`
-- **Role**: Acts as a technical contract for implementation
+#### 3. TDR – Technical Decision Records (Markdown, preferred)
+- **Purpose**: Define *how software must be implemented* in a format compatible across AI systems
+- **Location**: `docs/tdrs/*.md`
+- **Key principle**: TDR does not describe what to build. It defines how to build it correctly.
+- **Contains**: Same as TS4 — coding conventions, naming rules, validation strategies, allowed/forbidden patterns, project-specific technical decisions
+- **Format**: Markdown with YAML frontmatter (`tdr`, `id`, `title`, `summary`), `# rules` section, optional `code_refs`; see `docs/business/tdr.md`
+- **Role**: Technical contract for implementation; preferred over TS4 for new specs (Cursor, Claude, and other hosts)
+- **Collection**: `technical-decision-records` — query this first for technical constraints
 
-#### 4. Architecture Decision Records and Business Documentation (ADRs and .md files)
+#### 4. TS4 – Technical Specification Files (YAML, deprecated)
+- **Purpose**: Same as TDR; legacy format.
+- **Location**: `docs/ts4/*.ts4`
+- **Status**: **Deprecated.** Still supported and indexed in `tech-specs`; when you encounter TS4, suggest migrating to TDR (see `docs/business/tdr.md`).
+
+#### 5. Architecture Decision Records and Business Documentation (ADRs and .md files)
 - **Purpose**: Preserve *why technical decisions were made*
 - **Locations**: `docs/adrs/*.md`, `docs/business/*.md`
 - **Contains**: Architecture choices, trade-offs, constraints, business descriptions, environment considerations
@@ -133,7 +139,8 @@ Cliplin is built on four complementary specification pillars, each with a precis
 **Valid Inputs Only:**
 - Business Features (.feature in docs/features/)
 - UI Intent specifications (.yaml in docs/ui-intent/)
-- TS4 technical rules (.ts4 in docs/ts4/)
+- TDR technical rules (.md in docs/tdrs/) — prefer these; collection `technical-decision-records`
+- TS4 technical rules (.ts4 in docs/ts4/) — deprecated; collection `tech-specs`; suggest migrating to TDR
 - ADRs and business documentation (.md in docs/adrs/ and docs/business/)
 
 **Everything else is noise.** All outputs must be traceable back to a specification.
@@ -255,10 +262,99 @@ code_refs:  # Optional
 ### Notes
 - This ADR should be indexed in the context store collection `business-and-architecture`
 - When creating new TS4 files, follow the structure and naming conventions described here
+- **TS4 is deprecated** in favour of TDR (see ADR-003); prefer creating TDRs in `docs/tdrs/`
 """
     
     adr_path.write_text(adr_content, encoding="utf-8")
     console.print(f"  [green]✓[/green] Created docs/adrs/001-ts4-format.md")
+
+
+def create_tdr_format_adr(target_dir: Path) -> None:
+    """Create ADR about TDR (Technical Decision Record) format and usage."""
+    adr_path = target_dir / "docs" / "adrs" / "003-tdr-format.md"
+    adr_path.parent.mkdir(parents=True, exist_ok=True)
+
+    adr_content = """# ADR-003: TDR (Technical Decision Record) Format and Usage
+
+## Status
+Accepted
+
+## Context
+
+TDR is the preferred format for technical decision records in Cliplin. It uses standard Markdown with YAML frontmatter instead of a custom YAML-only format (TS4), improving compatibility across AI systems (Cursor, Claude, etc.) and avoiding a Cliplin-specific syntax. This ADR explains the TDR format so that AI assistants can understand and work with TDR files correctly.
+
+## Decision
+
+### What is TDR?
+
+TDR (Technical Decision Record) is a Markdown-based format with the same conceptual model as TS4: technical rules, code references, and a clear structure. Each TDR file contains implementation rules and optional code references in a format that is widely supported by AI tools.
+
+### TDR File Structure
+
+A TDR file is a Markdown file (`.md`) with:
+
+1. **YAML frontmatter** (between `---` lines): `tdr`, `id` (kebab-case), `title`, `summary`
+2. **Body**: A `# rules` section with optional `##` subsections; rules as bullet lists or prose
+3. **Optional `code_refs`** at the end (YAML block or list of file paths)
+
+Example:
+
+```markdown
+---
+tdr: "1.0"
+id: "chromadb-library"
+title: "ChromaDB as Library Usage"
+summary: "Rules for using ChromaDB as the context store library."
+---
+
+# rules
+
+## ChromaDB client usage
+- Use `chromadb.PersistentClient(path=...)` for the project context store.
+- ALWAYS pass an absolute, resolved path (critical for Windows).
+
+code_refs:
+  - "src/cliplin/utils/chromadb.py"
+  - "docs/adrs/002-chromadb-rag-context-base.md"
+```
+
+### Field Descriptions
+
+- **tdr**: Format version (e.g. `"1.0"`)
+- **id**: Unique identifier in kebab-case (lowercase words separated by hyphens)
+- **title**: Short title of the technical decision
+- **summary**: Brief description for indexing and retrieval
+- **Body**: Markdown with `# rules` and optional `##` headings; bullets or prose
+- **code_refs**: Optional list of file paths or patterns related to this specification
+
+### Key Principles
+
+1. **TDR does not describe what to build. It defines how to build it correctly.**
+2. TDR files act as a **technical contract** for implementation, like TS4
+3. Each TDR file should focus on a specific technical decision or set of related rules
+4. Use standard Markdown so that any AI host or tool can parse and display it
+
+### Usage
+
+- TDR files are located in `docs/tdrs/` directory
+- They are indexed in the context store collection `technical-decision-records`
+- AI assistants should query `technical-decision-records` first for technical constraints; use `tech-specs` (TS4) as fallback
+- TDR files complement ADRs: ADRs explain *why*, TDRs define *how*
+- If the project still has TS4 files in `docs/ts4/`, suggest migrating them to TDR (see project `docs/business/tdr.md`)
+
+## Consequences
+
+### Positive
+- Compatible with standard Markdown tooling and AI systems
+- Same conceptual model as TS4 (rules, code_refs) with better portability
+- Optimized for AI context retrieval; single collection `technical-decision-records` for technical rules
+
+### Notes
+- This ADR is indexed in the context store collection `business-and-architecture`
+- When creating new technical specs, prefer TDR in `docs/tdrs/` over TS4 in `docs/ts4/`
+"""
+    adr_path.write_text(adr_content, encoding="utf-8")
+    console.print(f"  [green]✓[/green] Created docs/adrs/003-tdr-format.md")
 
 
 def create_ui_intent_format_adr(target_dir: Path) -> None:
@@ -460,7 +556,7 @@ This project uses Cliplin and can depend on **knowledge packages**: external rep
 
 ### Context store and visibility
 
-- Documents under `.cliplin/knowledge/**` are indexed in the same collections as project docs (e.g. adrs → business-and-architecture, ts4 → tech-specs). The AI loads them via the Cliplin MCP (context store) when querying context.
+- Documents under `.cliplin/knowledge/**` are indexed in the same collections as project docs (e.g. adrs → business-and-architecture, tdrs → technical-decision-records, ts4 → tech-specs). The AI loads them via the Cliplin MCP (context store) when querying context.
 - After add/update, the package is reindexed automatically; after remove, its documents are removed from the store.
 
 ### Full usage and conventions
@@ -491,6 +587,7 @@ def create_framework_knowledge_package(project_root: Path) -> None:
     framework_base.mkdir(parents=True, exist_ok=True)
     create_framework_adr(framework_base)
     create_ts4_format_adr(framework_base)
+    create_tdr_format_adr(framework_base)
     create_ui_intent_format_adr(framework_base)
     create_knowledge_packages_adr(framework_base)
     console.print(f"  [green]✓[/green] Updated .cliplin/knowledge/{FRAMEWORK_PACKAGE_DIR}/")
@@ -588,10 +685,11 @@ alwaysApply: true
 **CRITICAL RULE**: Before starting ANY planning, coding, or thinking task, you MUST:
 
 1. **Load context from Cliplin MCP server**: Use the 'cliplin-context' MCP server (Cliplin context MCP server) as the source of truth
-2. **Query relevant collections**: Use Cliplin MCP tools (e.g. context_query_documents) to query and load relevant context from the appropriate collections:
+2. **Query relevant collections**: Use Cliplin MCP tools (e.g. context_query_documents) to query and load relevant context from the appropriate collections. **Prefer TDR over TS4**: query `technical-decision-records` first for technical constraints; use `tech-specs` (TS4) only as fallback or when suggesting migration.
    - 'business-and-architecture' collection: ADRs and business documentation from 'docs/adrs', 'docs/business', and '.cliplin/knowledge/**' (built-in framework + knowledge packages)
    - 'features' collection: .feature files from 'docs/features' and '.cliplin/knowledge/**'
-   - 'tech-specs' collection: .ts4 files from 'docs/ts4' and '.cliplin/knowledge/**'
+   - 'technical-decision-records' collection: TDR .md files from 'docs/tdrs' and '.cliplin/knowledge/**' (preferred for technical rules)
+   - 'tech-specs' collection: .ts4 files from 'docs/ts4' and '.cliplin/knowledge/**' (deprecated; if you only find TS4, suggest migrating to TDR — see docs/business/tdr.md)
    - 'uisi' collection: .yaml files from 'docs/ui-intent' and '.cliplin/knowledge/**'
 3. **Never proceed without context**: Do NOT start any task until you have queried and loaded the relevant context from the context store collections (via Cliplin MCP)
 4. **Use semantic queries**: Query collections using semantic search based on the task domain, entities, and requirements to retrieve the most relevant context
@@ -602,15 +700,16 @@ alwaysApply: true
 
 The following file types should be indexed into their respective collections (see confirmation rules below):
 - `.md` files in `docs/adrs/`, `docs/business/`, or `.cliplin/knowledge/**` → `business-and-architecture` collection
-- `.ts4` files in `docs/ts4/` or `.cliplin/knowledge/**` → `tech-specs` collection
+- `.md` files in `docs/tdrs/` or `.cliplin/knowledge/**` (TDR) → `technical-decision-records` collection
+- `.ts4` files in `docs/ts4/` or `.cliplin/knowledge/**` → `tech-specs` collection (deprecated; suggest migrating to TDR)
 - `.feature` files in `docs/features/` or `.cliplin/knowledge/**` → `features` collection
 - `.yaml` files in `docs/ui-intent/` or `.cliplin/knowledge/**` → `uisi` collection
 
 ### Metadata Requirements
 
-- When indexing documents, always include proper metadata as an array of objects with the following structure: `[{'file_path': 'relative/path/to/file', 'type': 'ts4|adr|project-doc|feature|ui-intent', 'collection': 'target-collection-name'}]`
+- When indexing documents, always include proper metadata as an array of objects with the following structure: `[{'file_path': 'relative/path/to/file', 'type': 'tdr|ts4|adr|project-doc|feature|ui-intent', 'collection': 'target-collection-name'}]`
 - Each document in the documents array must have a corresponding metadata object in the metadatas array at the same index
-- Use the file path (relative to project root) as the document ID when indexing (e.g., 'docs/ts4/ts4-project-structure.ts4')
+- Use the file path (relative to project root) as the document ID when indexing (e.g., 'docs/tdrs/chromadb-library.md' or 'docs/ts4/ts4-project-structure.ts4')
 - Before indexing a document, check if it already exists by querying the collection with the file path as ID using `context_get_documents` or `context_query_documents`. If it exists, use `context_update_documents` to update it instead of adding a duplicate
 
 ### Automatic Detection and User Confirmation
@@ -618,6 +717,7 @@ The following file types should be indexed into their respective collections (se
 When any context file is created or modified, you MUST:
 
 1. **Detect the change**: Identify when files are created or modified in the following directories:
+   - `.md` files in `docs/tdrs/` or `.cliplin/knowledge/**` (TDR) → target collection: `technical-decision-records`
    - `.ts4` files in `docs/ts4/` or `.cliplin/knowledge/**` → target collection: `tech-specs`
    - `.md` files in `docs/adrs/`, `docs/business/`, or `.cliplin/knowledge/**` → target collection: `business-and-architecture`
    - `.feature` files in `docs/features/` or `.cliplin/knowledge/**` → target collection: `features`
@@ -635,7 +735,7 @@ When any context file is created or modified, you MUST:
      * Check if the document already exists by querying the collection with the file path as ID using `context_get_documents` or `context_query_documents`
      * If it exists, use `context_update_documents` to update it
      * If it doesn't exist, use `context_add_documents` to add it
-     * Always include proper metadata as an array of objects with the structure: `[{'file_path': 'relative/path/to/file', 'type': 'ts4|adr|project-doc|feature|ui-intent', 'collection': 'target-collection-name'}]`
+     * Always include proper metadata as an array of objects with the structure: `[{'file_path': 'relative/path/to/file', 'type': 'tdr|ts4|adr|project-doc|feature|ui-intent', 'collection': 'target-collection-name'}]`
      * Use the file path (relative to project root) as the document ID
      * Avoid duplicated files and outdated or deleted files in the collection
 
@@ -643,7 +743,7 @@ When any context file is created or modified, you MUST:
    - **Use the Cliplin CLI command**: Run `cliplin reindex` with appropriate options instead of manually using Cliplin MCP tools
    - For specific files: `cliplin reindex docs/path/to/file.md`
    - For directories: `cliplin reindex --directory docs/business`
-   - For file types: `cliplin reindex --type ts4`
+   - For file types: `cliplin reindex --type tdr` or `cliplin reindex --type ts4`
    - For preview: `cliplin reindex --dry-run`
    - For verbose output: `cliplin reindex --verbose`
    - The CLI command handles all the complexity of checking for existing documents, updating metadata, and managing collections
@@ -671,7 +771,7 @@ alwaysApply: true
 
 ### 1. Consider the feature spec first
 
-- **Before** modifying code, TS4, ADRs, or any other file, ask: does this change or request require an update to a feature spec?
+- **Before** modifying code, TDR/TS4, ADRs, or any other file, ask: does this change or request require an update to a feature spec?
 - If **yes** or **unclear**: **suggest** updating (or creating) the relevant `.feature` file in `docs/features/` first. Propose the spec changes and get user agreement if needed; then update the feature file **before** touching any other file.
 - If **no** (e.g. pure refactor that does not change behavior, or task explicitly outside feature scope): you may proceed without changing a feature file, but any new or changed behavior must still be traceable to a spec.
 
@@ -704,9 +804,10 @@ When a user asks to implement a feature or work with `.feature` files:
 
 0. **Context Loading Phase (MANDATORY FIRST STEP)**:
    - **CRITICAL**: Before starting ANY feature analysis or implementation, you MUST load context from the Cliplin MCP server 'cliplin-context'
-   - **Use MCP tools to query collections**: Use the Cliplin MCP tools (e.g. context_query_documents) to load relevant context from ALL collections:
+   - **Use MCP tools to query collections**: Use the Cliplin MCP tools (e.g. context_query_documents) to load relevant context from ALL collections. **Prefer TDR over TS4**: query `technical-decision-records` first for technical rules; use `tech-specs` (TS4) as fallback and, if you only find TS4, suggest migrating to TDR (see docs/business/tdr.md).
      * Query `business-and-architecture` collection to load ADRs and business documentation
-     * Query `tech-specs` collection to load technical specifications and implementation rules
+     * Query `technical-decision-records` collection first for technical specifications and implementation rules (TDR)
+     * Query `tech-specs` collection for legacy TS4 specs if needed (deprecated; suggest migrating to TDR)
      * Query `features` collection to load related or dependent features
      * Query `uisi` collection to load UI/UX requirements if applicable
    - **Query strategy**: Use semantic queries based on the feature domain, entities, and use cases to retrieve relevant context
@@ -736,7 +837,7 @@ When a user asks to implement a feature or work with `.feature` files:
    - Identify domain entities, use cases, and boundaries
    - **Use loaded context**: Apply the context loaded from the context store (via Cliplin MCP) in phase 0 to inform your analysis:
      * Use business rules from `business-and-architecture` collection
-     * Apply technical constraints from `tech-specs` collection
+     * Apply technical constraints from `technical-decision-records` (TDR) first, then `tech-specs` (TS4) if needed; if you only have TS4, suggest migrating to TDR
      * Consider dependencies from related features in `features` collection
      * Incorporate UI/UX requirements from `uisi` collection if applicable
 
@@ -746,7 +847,7 @@ When a user asks to implement a feature or work with `.feature` files:
    **a) Architecture Analysis**:
    - **Use loaded context**: Apply the context already loaded from the context store (via Cliplin MCP) in phase 0
    - Use ADRs from `business-and-architecture` collection to understand existing architecture decisions
-   - Apply technical constraints and patterns from `tech-specs` collection
+   - Apply technical constraints and patterns from `technical-decision-records` (TDR) first, then `tech-specs` (TS4); if you encounter TS4, suggest migrating to TDR
    - Identify which domain layer components are needed (entities, value objects, use cases)
    - Determine required ports (interfaces) following hexagonal architecture
    - Identify adapters needed (repositories, external services, etc.)
@@ -766,7 +867,7 @@ When a user asks to implement a feature or work with `.feature` files:
    - Use test fixtures and setup utilities as appropriate for the language/framework
    - Mock all external dependencies to isolate unit tests
    - Test edge cases, validation rules, and error conditions
-   - Aim for minimum 80% code coverage for business logicif is not another coverage rule present on ts4 documents
+   - Aim for minimum 80% code coverage for business logic if no other coverage rule is present in TDR or TS4 documents
    
    **d) BDD Test Strategy**:
    - Map each active scenario (non-deprecated) from the `.feature` file to BDD test steps
@@ -951,10 +1052,11 @@ alwaysApply: true
 
 1. **Query context store collections first**: Before beginning ANY task, you MUST query the relevant context store collections using the 'cliplin-context' MCP server (Cliplin MCP) to load context.
 
-2. **Determine Relevant Collections**: Based on the task domain, entities, and requirements, identify which collections contain relevant context:
+2. **Determine Relevant Collections**: Based on the task domain, entities, and requirements, identify which collections contain relevant context. **Prefer TDR over TS4**: query `technical-decision-records` first; use `tech-specs` (TS4) as fallback and, if you only find TS4, suggest migrating to TDR (docs/business/tdr.md).
    - `business-and-architecture`: ADRs, business documentation, architectural decisions
    - `features`: Feature files, scenarios, business requirements
-   - `tech-specs`: Technical specifications, implementation rules, coding conventions
+   - `technical-decision-records`: TDR technical specifications (preferred)
+   - `tech-specs`: TS4 technical specifications (deprecated; suggest migrating to TDR)
    - `uisi`: UI Intent specifications, user experience requirements
 
 3. **Use Semantic Queries**: Query collections using semantic search based on:
@@ -967,7 +1069,7 @@ alwaysApply: true
 
 4. **Query Multiple Collections**: For comprehensive context, query ALL relevant collections:
    - Start with `business-and-architecture` for business rules and ADRs
-   - Query `tech-specs` for technical constraints and implementation patterns
+   - Query `technical-decision-records` first for technical constraints; use `tech-specs` (TS4) as fallback and suggest migrating to TDR if you only find TS4
    - Query `features` for related features and dependencies
    - Query `uisi` if UI/UX work is involved
 
@@ -980,7 +1082,7 @@ alwaysApply: true
 
 **Example 1: Debugging (User says "fix the authentication error")**
 ```
-1. Query 'tech-specs' collection: "authentication error handling"
+1. Query 'technical-decision-records' (or 'tech-specs') collection: "authentication error handling"
 2. Query 'features' collection: "authentication login scenarios"
 3. Query 'business-and-architecture' collection: "authentication security ADRs"
 4. Review loaded context to understand expected behavior and error patterns
@@ -991,13 +1093,13 @@ alwaysApply: true
 ```
 1. Query 'features' collection: "payment processing scenarios"
 2. Query 'business-and-architecture' collection: "payment business rules"
-3. Query 'tech-specs' collection: "payment implementation patterns"
+3. Query 'technical-decision-records' (or 'tech-specs') collection: "payment implementation patterns"
 4. Review loaded context before starting implementation
 ```
 
 **Example 3: Fixing (User says "fix the bug in component X")**
 ```
-1. Query 'tech-specs' collection: "[component-name] implementation rules"
+1. Query 'technical-decision-records' (or 'tech-specs') collection: "[component-name] implementation rules"
 2. Query 'features' collection: "[feature-name] scenarios"
 3. Query 'business-and-architecture' collection: "related ADRs"
 4. Review loaded context to understand expected behavior
@@ -1007,7 +1109,7 @@ alwaysApply: true
 **Example 4: Architecture (User says "improve the system architecture")**
 ```
 1. Query 'business-and-architecture' collection: "existing architecture ADRs"
-2. Query 'tech-specs' collection: "architectural patterns and constraints"
+2. Query 'technical-decision-records' (or 'tech-specs') collection: "architectural patterns and constraints"
 3. Query 'features' collection: "system features and dependencies"
 4. Review loaded context to understand current architecture
 5. THEN propose improvements

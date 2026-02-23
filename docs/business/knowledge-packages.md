@@ -67,7 +67,7 @@ Use quotes in the shell if needed: `cliplin knowledge add "AWS/aws-sqs" github:o
 
 ### Single-package repo (whole repo is one package)
 
-The repository **root** contains the usual Cliplin layout (`docs/adrs/`, `docs/ts4/`, etc.). There is no top-level folder matching the package name. In that case, Cliplin installs the root-level context paths and the package root is the repo root.
+The repository **root** contains the usual Cliplin layout (`docs/adrs/`, `docs/tdrs/`, etc.). There is no top-level folder matching the package name. In that case, Cliplin installs the root-level context paths and the package root is the repo root.
 
 ---
 
@@ -177,7 +177,7 @@ Documents from knowledge packages use the same collections as your own specs (e.
 For content to be indexed correctly, package repos should use the usual Cliplin paths:
 
 - **ADRs / business**: `adrs/`, `docs/adrs/`, `business/`, `docs/business/` (with `.md`).
-- **TS4**: `ts4/`, `docs/ts4/` (with `.ts4`).
+- **TDR**: `tdrs/`, `docs/tdrs/` (with `.md`). Legacy: **TS4** `ts4/`, `docs/ts4/` (with `.ts4`).
 - **Features**: `features/`, `docs/features/` (with `.feature`).
 - **UI intent**: `ui-intent/`, `docs/ui-intent/` (with `.yaml`).
 - **Skills** (optional): folders containing `SKILL.md` under `skills/` (e.g. `skills/skill-folder/SKILL.md` or `skills/<pkg>/skill-folder/SKILL.md`) — if the host supports it (e.g. Claude Desktop), Cliplin finds all folders that contain `SKILL.md` and creates hard links for each file under `.claude/skills/`, so you get `.claude/skills/skill-folder/SKILL.md` (one level only, as Claude expects).

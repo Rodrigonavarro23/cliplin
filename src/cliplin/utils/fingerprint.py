@@ -66,7 +66,7 @@ def update_fingerprint(
     """
     Update the fingerprint store for a document after indexing.
     Either pass content (bytes) or file_system_path to read from disk.
-    file_path should be relative to project root (e.g. docs/ts4/example.ts4).
+    file_path should be relative to project root (e.g. docs/tdrs/example.md).
     """
     if content is None and file_system_path is None:
         raise ValueError("Provide content or file_system_path")
@@ -88,7 +88,7 @@ def has_document_changed(
 ) -> Dict[str, Any]:
     """
     Check if a document has changed since last index.
-    file_path: relative path (e.g. docs/ts4/example.ts4).
+    file_path: relative path (e.g. docs/tdrs/example.md).
     Returns dict with keys: changed (bool), current_fingerprint (str|None), stored_fingerprint (str|None), exists_on_disk (bool).
     """
     path = file_system_path or (project_root / file_path)
@@ -160,7 +160,7 @@ def list_changed_documents(
 ) -> Dict[str, Any]:
     """
     List file paths that need reindexing: new (no fingerprint) or changed (fingerprint differs).
-    Optionally scope by collection_name (e.g. tech-specs) or directories (e.g. [docs/ts4, docs/features]).
+    Optionally scope by collection_name (e.g. technical-decision-records) or directories (e.g. [docs/tdrs, docs/features]).
     Returns dict with keys: changed_or_new (list of paths), deleted (list of paths in store but missing on disk).
     """
     store = load_fingerprint_store(project_root)

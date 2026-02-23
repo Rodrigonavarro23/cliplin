@@ -30,14 +30,15 @@ Feature: Cliplin CLI Tool
       | docs/adrs | Project Architecture Decision Records (user-created) |
       | docs/business | Business documentation |
       | docs/features | Feature files (Gherkin) |
-      | docs/ts4 | Technical specifications |
+      | docs/tdrs | Technical Decision Records (TDR) |
       | docs/ui-intent | UI Intent specifications |
       | .cliplin/data/context | Context store (project context store) |
     And the CLI should create the built-in framework package at `.cliplin/knowledge/cliplin-framework/`
     And the CLI should create framework ADRs in `.cliplin/knowledge/cliplin-framework/docs/adrs/`:
       | File | Content |
       | 000-cliplin-framework.md | Cliplin Framework Overview |
-      | 001-ts4-format.md | TS4 Format and Usage |
+      | 001-ts4-format.md | TS4 Format and Usage (legacy) |
+      | 003-tdr-format.md | TDR Format and Usage |
       | 002-ui-intent-format.md | UI Intent Schema Format |
       | 005-knowledge-packages.md | Knowledge Packages ADR |
     And the CLI should NOT add the framework package to `cliplin.yaml` (it is a hidden built-in package)
@@ -46,7 +47,8 @@ Feature: Cliplin CLI Tool
       | Collection Name | Purpose |
       | business-and-architecture | Stores ADRs and business documentation |
       | features | Stores feature files |
-      | tech-specs | Stores TS4 technical specifications |
+      | technical-decision-records | Stores TDR technical specifications |
+      | tech-specs | Stores legacy TS4 technical specifications |
       | uisi | Stores UI Intent YAML files |
     And the CLI should ensure `.cliplin` is listed in `.gitignore`
     And the CLI should validate that the project structure is correct
@@ -103,13 +105,14 @@ Feature: Cliplin CLI Tool
       | docs/adrs |
       | docs/business |
       | docs/features |
-      | docs/ts4 |
+      | docs/tdrs |
       | docs/ui-intent |
       | .cliplin/data/context |
     And the CLI should verify that the context store exists at `.cliplin/data/context`
     And the CLI should verify that all required context store collections exist:
       | business-and-architecture |
       | features |
+      | technical-decision-records |
       | tech-specs |
       | uisi |
     And the CLI should verify that configuration file exists at project root `cliplin.yaml`
@@ -139,6 +142,7 @@ Feature: Cliplin CLI Tool
       | Collection | File Pattern | Directory |
       | business-and-architecture | *.md | docs/adrs, docs/business |
       | features | *.feature | docs/features |
+      | technical-decision-records | *.md | docs/tdrs |
       | tech-specs | *.ts4 | docs/ts4 |
       | uisi | *.yaml | docs/ui-intent |
     And the MCP server configuration should be accessible to the AI tool (Cursor)
@@ -186,7 +190,7 @@ Feature: Cliplin CLI Tool
     And I am in an empty directory or a new project directory
     When I run `cliplin init`
     Then the CLI should create the built-in framework package at `.cliplin/knowledge/cliplin-framework/`
-    And the framework package should contain framework ADRs in `docs/adrs/` (000, 001, 002, 005)
+    And the framework package should contain framework ADRs in `docs/adrs/` (000, 001, 002, 003, 005)
     And the framework package should NOT appear in `cliplin.yaml` under the `knowledge` key
     And the framework package should NOT be listed by `cliplin knowledge list` (it is hidden)
     When I run `cliplin init` again and confirm to continue
@@ -257,16 +261,17 @@ Feature: Cliplin CLI Tool
       | docs/adrs | *.md | business-and-architecture |
       | docs/business | *.md | business-and-architecture |
       | docs/features | *.feature | features |
+      | docs/tdrs | *.md | technical-decision-records |
       | docs/ts4 | *.ts4 | tech-specs |
       | docs/ui-intent | *.yaml | uisi |
-      | .cliplin/knowledge/** | *.md, *.ts4, *.feature, *.yaml | same as project docs |
+      | .cliplin/knowledge/** | *.md, *.feature, *.yaml | same as project docs |
     And the CLI should check if each file already exists in the context store by file path
     And for each file that exists, the CLI should update it in the context store
     And for each file that does not exist, the CLI should add it to the context store
     And the CLI should include proper metadata for each document:
       | Metadata Field | Description |
       | file_path | Relative path to file from project root |
-      | type | File type (ts4, adr, project-doc, feature, ui-intent) |
+      | type | File type (tdr, ts4, adr, project-doc, feature, ui-intent) |
       | collection | Target collection name |
     And the CLI should use the file path as the document ID
     And the CLI should display a summary of reindexing results:
@@ -278,11 +283,12 @@ Feature: Cliplin CLI Tool
   Scenario: Reindex specific context file
     Given I have initialized a Cliplin project using `cliplin init --ai cursor`
     And the context store exists at `.cliplin/data/context`
-    And there is a file `docs/ts4/my-spec.ts4` in the project
-    When I run `cliplin reindex docs/ts4/my-spec.ts4`
+    And there is a file `docs/tdrs/my-spec.md` in the project
+    When I run `cliplin reindex docs/tdrs/my-spec.md`
     Then the CLI should validate that the file exists
     And the CLI should determine the target collection based on file type and location:
       | File Path | Collection |
+      | docs/tdrs/*.md | technical-decision-records |
       | docs/ts4/*.ts4 | tech-specs |
       | docs/adrs/*.md | business-and-architecture |
       | docs/business/*.md | business-and-architecture |
@@ -332,6 +338,7 @@ Feature: Cliplin CLI Tool
       | docs/adrs | business-and-architecture |
       | docs/business | business-and-architecture |
       | docs/features | features |
+      | docs/tdrs | technical-decision-records |
       | docs/ts4 | tech-specs |
       | docs/ui-intent | uisi |
     And the CLI should process each file with proper metadata
@@ -349,9 +356,9 @@ Feature: Cliplin CLI Tool
     And the CLI should detect which files have been modified since last indexing
     And the CLI should display a report showing:
       | File Path | Status | Action |
-      | docs/ts4/new-file.ts4 | New | Would add |
-      | docs/ts4/existing-file.ts4 | Modified | Would update |
-      | docs/ts4/unchanged-file.ts4 | Unchanged | Would skip |
+      | docs/tdrs/new-file.md | New | Would add |
+      | docs/tdrs/existing-file.md | Modified | Would update |
+      | docs/tdrs/unchanged-file.md | Unchanged | Would skip |
     And the CLI should not make any changes to the context store
     And the CLI should display a summary of what would be reindexed
 
@@ -371,7 +378,7 @@ Feature: Cliplin CLI Tool
   Scenario: Handle reindexing when file does not exist
     Given I have initialized a Cliplin project using `cliplin init --ai cursor`
     And the context store exists at `.cliplin/data/context`
-    When I run `cliplin reindex docs/ts4/non-existent-file.ts4`
+    When I run `cliplin reindex docs/tdrs/non-existent-file.md`
     Then the CLI should validate that the file exists
     And the CLI should display an error message indicating that the file does not exist
     And the CLI should exit with a non-zero status code
@@ -390,7 +397,7 @@ Feature: Cliplin CLI Tool
       | docs/adrs |
       | docs/business |
       | docs/features |
-      | docs/ts4 |
+      | docs/tdrs |
       | docs/ui-intent |
     And the CLI should exit with a non-zero status code
 
@@ -426,8 +433,8 @@ Feature: Cliplin CLI Tool
   Scenario: Reindex and handle duplicate documents
     Given I have initialized a Cliplin project using `cliplin init --ai cursor`
     And the context store exists at `.cliplin/data/context`
-    And a file `docs/ts4/test.ts4` already exists in the context store with the same file path ID
-    When I run `cliplin reindex docs/ts4/test.ts4`
+    And a file `docs/tdrs/test.md` already exists in the context store with the same file path ID
+    When I run `cliplin reindex docs/tdrs/test.md`
     Then the CLI should detect that the document already exists in the context store
     And the CLI should update the existing document instead of creating a duplicate
     And the CLI should use the MCP update-documents tool instead of add-documents
@@ -444,6 +451,7 @@ Feature: Cliplin CLI Tool
     Then the CLI should verify that all required collections exist:
       | business-and-architecture |
       | features |
+      | technical-decision-records |
       | tech-specs |
       | uisi |
     And if any collection is missing, the CLI should create it before reindexing

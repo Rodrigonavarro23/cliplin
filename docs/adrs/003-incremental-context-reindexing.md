@@ -23,7 +23,7 @@ ADR-002 already defines a **fingerprint store** (path → content fingerprint, e
 2. **Skip unchanged files**: Do not call add or update on the context store for files whose fingerprint matches the current file content.
 3. **After successfully indexing a file**: Update the fingerprint store with the new fingerprint so future runs see the file as unchanged until it is edited again.
 
-Implementation must use the shared fingerprint logic (see `docs/ts4/system-modules.ts4`) so that CLI reindex, MCP add/update, and any future "list changed documents" or "validate changes" command all rely on the same contract. Technical rules are prescribed in the TS4 (e.g. "Incremental reindex (MUST)" in system-modules).
+Implementation must use the shared fingerprint logic (see `docs/tdrs/system-modules.md`) so that CLI reindex, MCP add/update, and any future "list changed documents" or "validate changes" command all rely on the same contract. Technical rules are prescribed in the TDR (e.g. "Incremental reindex (MUST)" in system-modules).
 
 ## Consequences
 

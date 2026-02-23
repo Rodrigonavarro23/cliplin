@@ -24,7 +24,7 @@ REQUIRED_DIRS = [
     "docs/adrs",
     "docs/business",
     "docs/features",
-    "docs/ts4",
+    "docs/tdrs",
     "docs/ui-intent",
     ".cliplin/data/context",
 ]

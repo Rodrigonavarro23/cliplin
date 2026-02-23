@@ -32,7 +32,7 @@ Feature: Cliplin Knowledge Package Manager
     When I run `cliplin knowledge add <name> <source> <version>`
     Then the CLI should add an entry to the `knowledge` section in `cliplin.yaml` with the given name, source, and version
     And the CLI should create the package directory under `.cliplin/knowledge/` with the naming convention `<name>-<source_normalized>`
-    And the CLI should clone the repository using git sparse checkout so only relevant paths (e.g. docs/adrs, docs/ts4, docs/business, docs/features, rules, skills) are materialized
+    And the CLI should clone the repository using git sparse checkout so only relevant paths (e.g. docs/adrs, docs/tdrs, docs/business, docs/features, rules, skills) are materialized
     And the CLI should trigger reindexing for the newly added package so its documents are indexed into the context store (business-and-architecture, tech-specs, features, uisi as per file type)
     And the CLI should display a success message
     And if the host integration supports skills (e.g. Claude Desktop), the CLI should expose package skills (e.g. via hard links under `.claude/skills`) so they appear installed to the host
@@ -89,9 +89,9 @@ Feature: Cliplin Knowledge Package Manager
   @changed:2025-02-16
   Scenario: Reindex includes knowledge package content
     Given my project has one or more knowledge packages installed under `.cliplin/knowledge/`
-    And at least one package contains files under paths that map to context types (e.g. docs/adrs/*.md, docs/ts4/*.ts4)
+    And at least one package contains files under paths that map to context types (e.g. docs/adrs/*.md, docs/tdrs/*.md)
     When I run `cliplin reindex`
-    Then the CLI should scan `.cliplin/knowledge/**` in addition to docs/adrs, docs/business, docs/features, docs/ts4, docs/ui-intent
+    Then the CLI should scan `.cliplin/knowledge/**` in addition to docs/adrs, docs/business, docs/features, docs/tdrs, docs/ui-intent
     And the CLI should index each relevant file under each package into the same collections as project docs (e.g. adrs → business-and-architecture, ts4 → tech-specs)
     And the CLI should apply the same type-to-collection mapping regardless of extra subfolders inside a package (e.g. docs/adrs/framework/001-foo.md and docs/adrs/002-bar.md both map to business-and-architecture)
     And document IDs should be the file path relative to project root (e.g. `.cliplin/knowledge/commons-.../docs/adrs/001-foo.md`)

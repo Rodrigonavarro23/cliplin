@@ -54,12 +54,13 @@ Cliplin organizes specifications into four complementary pillars, each with a pr
 - Focus on **intent**, not pixels
 - Allow AI to generate UI code without guessing UX decisions
 
-#### 3. ⚙️ TS4 - Technical Specifications (YAML)
+#### 3. ⚙️ TDR - Technical Decision Records (Markdown)
 **Defines HOW software must be implemented**
 
-- Act as a **technical contract**
+- Markdown files with YAML frontmatter; act as a **technical contract**
 - Include: coding conventions, naming rules, validation strategies
 - **Key principle**: Doesn't describe WHAT to build, defines HOW to build it correctly
+- Location: `docs/tdrs/*.md` (see `docs/business/tdr.md` for format)
 
 #### 4. 📋 ADRs and Business Documentation (Markdown)
 **Preserves WHY technical decisions were made**
@@ -90,7 +91,7 @@ Cliplin automatically creates the directory structure and configures everything 
 │   ├── adrs/          # Project Architecture Decision Records (user-created)
 │   ├── business/      # Business documentation
 │   ├── features/      # Feature files (Gherkin)
-│   ├── ts4/           # Technical specifications
+│   ├── tdrs/          # Technical Decision Records (TDR)
 │   └── ui-intent/     # UI specifications
 └── .cliplin/
     ├── data/context/  # Context store (project context store)
@@ -98,7 +99,7 @@ Cliplin automatically creates the directory structure and configures everything 
         └── cliplin-framework/  # Built-in framework ADRs (hidden, updated on init)
 ```
 
-Init creates a built-in framework package at `.cliplin/knowledge/cliplin-framework/` with framework ADRs (Cliplin overview, TS4 format, UI Intent format, **knowledge packages**) so the AI and tools have visibility of available commands and conventions. This package is hidden (not in `cliplin.yaml`) and is updated on every init. **The framework context is indexed automatically** — no need to run `cliplin reindex` after init.
+Init creates a built-in framework package at `.cliplin/knowledge/cliplin-framework/` with framework ADRs (Cliplin overview, TDR format, UI Intent format, **knowledge packages**) so the AI and tools have visibility of available commands and conventions. This package is hidden (not in `cliplin.yaml`) and is updated on every init. **The framework context is indexed automatically** — no need to run `cliplin reindex` after init.
 
 **Note:** Cliplin tools (SPAs) are part of the Cliplin package installation, not your project directory.
 
@@ -118,15 +119,20 @@ Feature: User Authentication
     And I should be redirected to the dashboard
 ```
 
-**TS4 File** (`docs/ts4/input-validation.ts4`):
-```yaml
-ts4: "1.0"
+**TDR File** (`docs/tdrs/input-validation.md`):
+```markdown
+---
+tdr: "1.0"
 id: "input-validation"
 title: "Input Validation"
 summary: "Validate data at controllers; internal services assume validity"
-rules:
-  - "Avoid repeating validations in internal services"
-  - "Provide clear errors with 4xx HTTP status codes"
+---
+
+# rules
+
+- Avoid repeating validations in internal services
+- Provide clear errors with 4xx HTTP status codes
+
 code_refs:
   - "handlers/user.py"
   - "validators/*.py"
@@ -139,7 +145,7 @@ code_refs:
 cliplin reindex
 
 # Index a specific type
-cliplin reindex --type ts4
+cliplin reindex --type tdr
 
 # Preview changes
 cliplin reindex --dry-run
@@ -177,7 +183,7 @@ cliplin tool ui-intent
 
 ### 6. Manage Knowledge Packages (optional)
 
-You can install **knowledge packages**: external repos with ADRs, TS4, features, etc. They are installed under `.cliplin/knowledge/` and **indexed in the same context store** as your project specs.
+You can install **knowledge packages**: external repos with ADRs, TDRs, features, etc. They are installed under `.cliplin/knowledge/` and **indexed in the same context store** as your project specs.
 
 ```bash
 cliplin knowledge list
@@ -199,7 +205,7 @@ And the AI will:
 1. ✅ Automatically load context from the Cliplin MCP server (context store)
 2. ✅ Consider or update the feature spec first if the request implies new or changed behavior (feature-first flow)
 3. ✅ Read the feature file and related specifications
-4. ✅ Apply technical rules defined in TS4
+4. ✅ Apply technical rules defined in TDRs
 5. ✅ Respect architectural decisions in ADRs
 6. ✅ Generate code aligned with your specifications
 
@@ -218,7 +224,7 @@ And the AI will:
 
 - **Predictable behavior**: AI acts on specifications, not guessing
 - **Structured context**: The Cliplin MCP provides semantic search of specifications via the context store
-- **Guaranteed consistency**: Technical rules (TS4) ensure uniform code
+- **Guaranteed consistency**: Technical rules (TDR) ensure uniform code
 - **Fewer iterations**: Clear specifications reduce misunderstandings
 
 ### 📈 For Business
@@ -243,7 +249,7 @@ cliplin validate
 # Index specifications
 cliplin reindex                        # All
 cliplin reindex docs/features/*.feature  # Specific
-cliplin reindex --type ts4            # By type
+cliplin reindex --type tdr            # By type
 cliplin reindex --directory docs/business  # By directory
 cliplin reindex --dry-run             # Preview
 

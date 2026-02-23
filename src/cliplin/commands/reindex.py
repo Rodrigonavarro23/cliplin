@@ -148,7 +148,7 @@ def get_files_to_reindex(
         if not collection:
             raise ValueError(
                 f"File is not in a valid context directory: {file_path}\n"
-                "Valid directories: docs/adrs, docs/business, docs/features, docs/ts4, docs/ui-intent"
+                "Valid directories: docs/adrs, docs/business, docs/features, docs/tdrs, docs/ts4, docs/ui-intent"
             )
         
         files.append(full_path)
@@ -156,9 +156,10 @@ def get_files_to_reindex(
     elif file_type:
         # Files of specific type
         type_mapping = {
+            "tdr": ("docs/tdrs", "*.md"),
             "ts4": ("docs/ts4", "*.ts4"),
             "feature": ("docs/features", "*.feature"),
-            "md": ("docs/adrs", "*.md"),  # Could be adrs or business
+            "md": ("docs/adrs", "*.md"),  # adrs or business (not tdrs)
             "yaml": ("docs/ui-intent", "*.yaml"),
         }
         
@@ -170,11 +171,15 @@ def get_files_to_reindex(
         
         dir_pattern = type_mapping[file_type]
         if file_type == "md":
-            # Search both adrs and business
+            # Search both adrs and business (not tdrs — use type tdr for that)
             for dir_name in ["docs/adrs", "docs/business"]:
                 dir_path = project_root / dir_name
                 if dir_path.exists():
                     files.extend(dir_path.rglob("*.md"))
+        elif file_type == "tdr":
+            dir_path = project_root / dir_pattern[0]
+            if dir_path.exists():
+                files.extend(dir_path.rglob(dir_pattern[1]))
         else:
             dir_path = project_root / dir_pattern[0]
             if dir_path.exists():

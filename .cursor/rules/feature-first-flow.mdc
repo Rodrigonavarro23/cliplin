@@ -8,7 +8,7 @@ alwaysApply: true
 
 ### 1. Consider the feature spec first
 
-- **Before** modifying code, TS4, ADRs, or any other file, ask: does this change or request require an update to a feature spec?
+- **Before** modifying code, TDR/TS4, ADRs, or any other file, ask: does this change or request require an update to a feature spec?
 - If **yes** or **unclear**: **suggest** updating (or creating) the relevant `.feature` file in `docs/features/` first. Propose the spec changes and get user agreement if needed; then update the feature file **before** touching any other file.
 - If **no** (e.g. pure refactor that does not change behavior, or task explicitly outside feature scope): you may proceed without changing a feature file, but any new or changed behavior must still be traceable to a spec.
 

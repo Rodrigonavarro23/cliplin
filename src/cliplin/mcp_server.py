@@ -1,7 +1,7 @@
 """
 Cliplin Storage MCP server. Exposes context store and fingerprint tools via protocols.
 Uses project root = cwd (Cursor runs 'cliplin mcp' from project root).
-See docs/ts4/low-coupling-protocols.ts4.
+See docs/tdrs/low-coupling-protocols.md.
 """
 
 import json
@@ -15,7 +15,7 @@ from cliplin.utils.chromadb import get_context_store
 from cliplin.utils.fingerprint import get_fingerprint_store
 
 MCP_INSTRUCTIONS = """Cliplin context server: semantic search over project specs (ADRs, features, TS4, UI intent).
-Use context_query_documents to load relevant context before planning or coding. Collections: business-and-architecture, features, tech-specs, uisi.
+Use context_query_documents to load relevant context before planning or coding. Collections: business-and-architecture, features, technical-decision-records (prefer over tech-specs), tech-specs, uisi.
 Use context_list_changed_documents or context_check_document_changed for change detection. Never proceed without loading context from this server."""
 
 mcp = FastMCP(
@@ -226,7 +226,7 @@ def context_fork_collection(
 
 @mcp.tool()
 def context_check_document_changed(file_path: str) -> str:
-    """Check if a document (by relative file path, e.g. docs/ts4/example.ts4) has changed since last index. Uses fingerprint store."""
+    """Check if a document (by relative file path, e.g. docs/tdrs/example.md) has changed since last index. Uses fingerprint store."""
     result = _get_fingerprint_store().has_changed(file_path)
     return json.dumps(result)
 
@@ -236,7 +236,7 @@ def context_list_changed_documents(
     collection_name: Optional[str] = None,
     directories: Optional[List[str]] = None,
 ) -> str:
-    """List file paths that need reindexing (changed or new). Optionally scope by collection_name or directories (e.g. [docs/ts4, docs/features]). Returns changed_or_new and deleted lists."""
+    """List file paths that need reindexing (changed or new). Optionally scope by collection_name or directories (e.g. [docs/tdrs, docs/features]). Returns changed_or_new and deleted lists."""
     result = _get_fingerprint_store().list_changed(collection_name=collection_name, directories=directories)
     return json.dumps(result)
 

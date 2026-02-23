@@ -10,9 +10,10 @@ When a user asks to implement a feature or work with `.feature` files:
 
 0. **Context Loading Phase (MANDATORY FIRST STEP)**:
    - **CRITICAL**: Before starting ANY feature analysis or implementation, you MUST load context from the Cliplin MCP server 'cliplin-context'
-   - **Use MCP tools to query collections**: Use the Cliplin MCP tools (e.g. context_query_documents) to load relevant context from ALL collections:
+   - **Use MCP tools to query collections**: Use the Cliplin MCP tools (e.g. context_query_documents) to load relevant context from ALL collections. **Prefer TDR over TS4**: query `technical-decision-records` first for technical rules; use `tech-specs` (TS4) as fallback and, if you only find TS4, suggest migrating to TDR (see docs/business/tdr.md).
      * Query `business-and-architecture` collection to load ADRs and business documentation
-     * Query `tech-specs` collection to load technical specifications and implementation rules
+     * Query `technical-decision-records` collection first for technical specifications and implementation rules (TDR)
+     * Query `tech-specs` collection for legacy TS4 specs if needed (deprecated; suggest migrating to TDR)
      * Query `features` collection to load related or dependent features
      * Query `uisi` collection to load UI/UX requirements if applicable
    - **Query strategy**: Use semantic queries based on the feature domain, entities, and use cases to retrieve relevant context
@@ -42,7 +43,7 @@ When a user asks to implement a feature or work with `.feature` files:
    - Identify domain entities, use cases, and boundaries
    - **Use loaded context**: Apply the context loaded from the context store (via Cliplin MCP) in phase 0 to inform your analysis:
      * Use business rules from `business-and-architecture` collection
-     * Apply technical constraints from `tech-specs` collection
+     * Apply technical constraints from `technical-decision-records` (TDR) first, then `tech-specs` (TS4) if needed; if you only have TS4, suggest migrating to TDR
      * Consider dependencies from related features in `features` collection
      * Incorporate UI/UX requirements from `uisi` collection if applicable
 
@@ -52,7 +53,7 @@ When a user asks to implement a feature or work with `.feature` files:
    **a) Architecture Analysis**:
    - **Use loaded context**: Apply the context already loaded from the context store (via Cliplin MCP) in phase 0
    - Use ADRs from `business-and-architecture` collection to understand existing architecture decisions
-   - Apply technical constraints and patterns from `tech-specs` collection
+   - Apply technical constraints and patterns from `technical-decision-records` (TDR) first, then `tech-specs` (TS4); if you encounter TS4, suggest migrating to TDR
    - Identify which domain layer components are needed (entities, value objects, use cases)
    - Determine required ports (interfaces) following hexagonal architecture
    - Identify adapters needed (repositories, external services, etc.)
@@ -72,7 +73,7 @@ When a user asks to implement a feature or work with `.feature` files:
    - Use test fixtures and setup utilities as appropriate for the language/framework
    - Mock all external dependencies to isolate unit tests
    - Test edge cases, validation rules, and error conditions
-   - Aim for minimum 80% code coverage for business logicif is not another coverage rule present on ts4 documents
+   - Aim for minimum 80% code coverage for business logic if no other coverage rule is present in TDR or TS4 documents
    
    **d) BDD Test Strategy**:
    - Map each active scenario (non-deprecated) from the `.feature` file to BDD test steps

@@ -41,7 +41,7 @@ Cliplin is built on four complementary specification pillars, each with a precis
 
 #### 3. TS4 – Technical Specification Files (YAML)
 - **Purpose**: Define *how software must be implemented*
-- **Location**: `docs/ts4/*.ts4`
+- **Location**: `docs/tdrs/*.md` (TDR; legacy TS4 in `docs/ts4/*.ts4` if present)
 - **Key principle**: TS4 does not describe what to build. It defines how to build it correctly.
 - **Contains**: Coding conventions, naming rules, validation strategies, allowed/forbidden patterns, project-specific technical decisions
 - **Format**: YAML with `ts4`, `id` (kebab-case), `title`, `summary`, `rules[]`, optional `code_refs[]`
@@ -58,7 +58,7 @@ Cliplin is built on four complementary specification pillars, each with a precis
 **Valid Inputs Only:**
 - Business Features (.feature in docs/features/)
 - UI Intent specifications (.yaml in docs/ui-intent/)
-- TS4 technical rules (.ts4 in docs/ts4/)
+- TDR technical rules (.md in docs/tdrs/); legacy TS4 (.ts4 in docs/ts4/) if present
 - ADRs and business documentation (.md in docs/adrs/ and docs/business/)
 
 **Everything else is noise.** All outputs must be traceable back to a specification.

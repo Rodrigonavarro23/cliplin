@@ -28,12 +28,12 @@ from cliplin.commands.reindex import get_files_to_reindex, reindex_file
 
 console = Console()
 
-# Required directory structure
+# Required directory structure (TDR is default; docs/ts4 is deprecated but still supported if present)
 REQUIRED_DIRS = [
     "docs/adrs",
     "docs/business",
     "docs/features",
-    "docs/ts4",
+    "docs/tdrs",
     "docs/ui-intent",
     ".cliplin/data/context",
 ]
@@ -118,9 +118,13 @@ def init_command(
         success_text += (
             "\nNext steps:\n"
             "  - Add your feature files to docs/features/\n"
-            "  - Add your TS4 specs to docs/ts4/\n"
+            "  - Add your TDR specs to docs/tdrs/ (Technical Decision Records)\n"
             "  - Run 'cliplin reindex' to index new context files"
         )
+        if (project_root / "docs" / "ts4").exists():
+            success_text += (
+                "\n\n[yellow]Note:[/yellow] You have docs/ts4/. TS4 is deprecated; consider migrating to TDR (docs/tdrs/). Format: framework ADR 003-tdr-format (in .cliplin/knowledge/cliplin-framework/docs/adrs/)."
+            )
         console.print()
         console.print(Panel.fit(success_text, border_style="green"))
         

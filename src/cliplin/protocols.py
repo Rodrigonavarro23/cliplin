@@ -1,6 +1,6 @@
 """
 Protocols (interfaces) for low coupling. Callers depend on these, not on concrete implementations.
-See docs/ts4/low-coupling-protocols.ts4.
+See docs/tdrs/low-coupling-protocols.md.
 """
 
 from __future__ import annotations

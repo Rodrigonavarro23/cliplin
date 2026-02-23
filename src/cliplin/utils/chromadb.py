@@ -13,6 +13,7 @@ from cliplin.protocols import ContextStore
 console = Console()
 
 # Collection mappings
+# TDR (Technical Decision Record) is the preferred format; TS4 is deprecated but still supported.
 COLLECTION_MAPPINGS = {
     "business-and-architecture": {
         "directories": ["docs/adrs", "docs/business"],
@@ -23,6 +24,11 @@ COLLECTION_MAPPINGS = {
         "directories": ["docs/features"],
         "file_pattern": "*.feature",
         "type": "feature",
+    },
+    "technical-decision-records": {
+        "directories": ["docs/tdrs"],
+        "file_pattern": "*.md",
+        "type": "tdr",
     },
     "tech-specs": {
         "directories": ["docs/ts4"],
@@ -48,6 +54,8 @@ KNOWLEDGE_PATH_MAPPINGS: List[Tuple[str, str, str, str]] = [
     ("business", "*.md", "business-and-architecture", "project-doc"),
     ("docs/features", "*.feature", "features", "feature"),
     ("features", "*.feature", "features", "feature"),
+    ("docs/tdrs", "*.md", "technical-decision-records", "tdr"),
+    ("tdrs", "*.md", "technical-decision-records", "tdr"),
     ("docs/ts4", "*.ts4", "tech-specs", "ts4"),
     ("ts4", "*.ts4", "tech-specs", "ts4"),
     ("docs/ui-intent", "*.yaml", "uisi", "ui-intent"),
