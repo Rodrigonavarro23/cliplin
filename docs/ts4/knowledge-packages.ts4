@@ -8,18 +8,20 @@ rules:
     cliplin.yaml — knowledge section (MUST):
     - Top-level key `knowledge` is optional; value is a list of package entries
     - Each entry: `name` (string), `source` (string), `version` (string). No extra required fields for minimal support
-    - `source` format: at least `github:owner/repo` or `github:owner/repo/subpath`; other backends (e.g. git URL) may be added later and MUST be documented in this TS4
+    - `name` MAY contain a subpath (e.g. `AWS/aws-sqs`) to install a nested subfolder; the path is used for sparse checkout and flattened to the package root. For filesystem-safe directory names, `/` in name is normalized to `-` (e.g. `AWS-aws-sqs-github-org-repo`)
+    - `source` format: at least `github:owner/repo`; other backends (e.g. git URL) may be added later and MUST be documented in this TS4
     - `version`: branch name, commit SHA, or version tag; used when cloning or updating (e.g. git checkout <version>)
     - The CLI command `cliplin knowledge` reads and writes this section; add/remove/update MUST keep the file valid YAML and preserve other top-level keys
   - |
     Installation directory (MUST):
     - All packages live under `.cliplin/knowledge/` (project root relative)
-    - Per-package directory name: `<name>-<source_normalized>`. Normalize `source` for filesystem: e.g. replace `:` by `-`, `/` by `-` or keep as path segment per OS safety; result MUST be unique per (name, source) and valid on Windows and Unix. Example: name=commons, source=github:something/cross-knowledge/commons → `.cliplin/knowledge/commons-github-something-cross-knowledge-commons` or `.cliplin/knowledge/commons-github:something/cross-knowledge/commons` if the platform allows colons/slashes in dir names (prefer a single normalization rule documented here)
+    - Per-package directory name: `<name_normalized>-<source_normalized>`. Normalize `name` for filesystem: replace `/` and `\` by `-` (e.g. `AWS/aws-sqs` → `AWS-aws-sqs`). Normalize `source`: replace `:` and `/` by `-`. Result MUST be unique per (name, source) and valid on Windows and Unix. Example: name=AWS/aws-sqs, source=github:org/repo → `.cliplin/knowledge/AWS-aws-sqs-github-org-repo`
     - One directory per package; overwrite or replace on re-install/update
   - |
     Git sparse checkout (MUST for git-based sources):
     - For `source` that resolves to a Git repository, use git sparse checkout so only the desired content is materialized
-    - **Multi-package repo**: When the repo has multiple packages as top-level folders (e.g. aws/, commons/), the package **name** identifies the subfolder. Sparse checkout SHALL be set to [name] first (only that subfolder). After checkout, the installed directory SHALL contain that subfolder's content at root: move repo/<name>/* to the package root so the layout is .cliplin/knowledge/<name>-<source_normalized>/docs/adrs, etc., not .../aws/docs/adrs
+    - **Name with subpath** (e.g. `AWS/aws-sqs`): Sparse checkout SHALL be set to [name] (the path). After checkout, the content at repo/<name>/ SHALL be flattened to the package root: move repo/<name>/* to the package root so the layout is .cliplin/knowledge/<name_normalized>-<source_normalized>/docs/adrs, etc.
+    - **Multi-package repo** (name without slash): When the repo has multiple packages as top-level folders (e.g. aws/, commons/), the package **name** identifies the subfolder. Sparse checkout SHALL be set to [name] first (only that subfolder). After checkout, flatten as above.
     - **Single-package repo**: If the repo has no top-level folder matching the name (root has docs/, ts4/, etc.), sparse checkout SHALL use the standard context paths (docs/adrs, docs/business, docs/features, docs/ts4, docs/ui-intent, rules, skills, templates, and without docs/ prefix) so the root of the clone is the package root
     - Use shallow clone where appropriate (e.g. depth 1 for a branch or tag) to reduce size; for a specific commit, ensure that commit is fetched
     - Do not rely on `git add --sparse` for the initial clone; that command is for staging. Sparse checkout is configured before or during checkout so the working tree only contains the desired paths

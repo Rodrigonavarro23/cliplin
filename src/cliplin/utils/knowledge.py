@@ -98,9 +98,17 @@ def normalize_source(source: str) -> str:
     return re.sub(r"[:/\\]+", "-", source).strip("-")
 
 
+def normalize_name_for_dir(name: str) -> str:
+    """
+    Normalize name for use in directory name: replace / with - so paths like AWS/aws-sqs
+    become AWS-aws-sqs (filesystem-safe).
+    """
+    return re.sub(r"[/\\]+", "-", name).strip("-")
+
+
 def get_package_dir_name(name: str, source: str) -> str:
     """Directory name under .cliplin/knowledge/ for this package."""
-    return f"{name}-{normalize_source(source)}"
+    return f"{normalize_name_for_dir(name)}-{normalize_source(source)}"
 
 
 def get_knowledge_root(project_root: Path) -> Path:
@@ -160,6 +168,43 @@ def _flatten_package_subfolder(pkg_path: Path, name: str) -> None:
     subfolder.rmdir()
 
 
+def _flatten_subpath(pkg_path: Path, subpath: str) -> None:
+    """
+    Move contents of pkg_path/subpath/ to pkg_path/ so the package root holds the
+    subpath content (e.g. name=AWS/aws-sqs means sparse checkout of that path, then flatten).
+    Cleans the package root first (except .git and the subpath) before moving.
+    """
+    subfolder = pkg_path / subpath
+    if not subfolder.is_dir():
+        return
+    # Remove any existing content at package root except .git and the subpath hierarchy
+    for item in pkg_path.iterdir():
+        if item.name == ".git":
+            continue
+        if item == subfolder or item in subfolder.parents:
+            continue
+        if item.is_dir():
+            shutil.rmtree(item)
+        else:
+            item.unlink()
+    # Move subpath contents to package root
+    for item in subfolder.iterdir():
+        dest = pkg_path / item.name
+        if dest.exists():
+            if dest.is_dir():
+                shutil.rmtree(dest)
+            else:
+                dest.unlink()
+        shutil.move(str(item), str(pkg_path))
+    # Remove subpath directories (from deepest to root)
+    current = subfolder
+    while current != pkg_path:
+        parent = current.parent
+        if current.is_dir() and not any(current.iterdir()):
+            current.rmdir()
+        current = parent
+
+
 def clone_package(
     project_root: Path,
     name: str,
@@ -168,8 +213,9 @@ def clone_package(
 ) -> Path:
     """
     Clone the repository for the package with sparse checkout into .cliplin/knowledge/<name>-<source_normalized>.
-    Multi-package repo: sparse checkout only <name>/ then flatten so package root = content of repo/<name>/.
-    Single-package repo: if no top-level <name>/ folder, sparse checkout standard paths (docs/adrs, etc.).
+    - Name with subpath (e.g. AWS/aws-sqs): sparse checkout that path, then flatten to package root.
+    - Multi-package repo: sparse checkout only <name>/ (top-level) then flatten.
+    - Single-package repo: if no top-level <name>/ folder, sparse checkout standard paths (docs/adrs, etc.).
     Returns the path to the package directory.
     """
     pkg_path = get_package_path(project_root, name, source)
@@ -195,28 +241,11 @@ def clone_package(
         capture_output=True,
         text=True,
     )
-    # Prefer multi-package layout: only the subfolder matching the package name
-    subprocess.run(
-        ["git", "-C", str(pkg_path), "sparse-checkout", "set", name],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    subprocess.run(
-        ["git", "-C", str(pkg_path), "checkout", version],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    name_dir = pkg_path / name
-    if name_dir.is_dir() and any(name_dir.iterdir()):
-        _flatten_package_subfolder(pkg_path, name)
-    else:
-        # Single-package repo: no top-level name folder; materialize root-level context paths
-        if name_dir.exists():
-            shutil.rmtree(name_dir)
+
+    if "/" in name or "\\" in name:
+        # Name is a subpath (e.g. AWS/aws-sqs): sparse checkout that path, then flatten
         subprocess.run(
-            ["git", "-C", str(pkg_path), "sparse-checkout", "set"] + SPARSE_PATHS,
+            ["git", "-C", str(pkg_path), "sparse-checkout", "set", name],
             check=True,
             capture_output=True,
             text=True,
@@ -227,11 +256,45 @@ def clone_package(
             capture_output=True,
             text=True,
         )
+        _flatten_subpath(pkg_path, name)
+    else:
+        # Name is top-level: try multi-package layout first
+        subprocess.run(
+            ["git", "-C", str(pkg_path), "sparse-checkout", "set", name],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        subprocess.run(
+            ["git", "-C", str(pkg_path), "checkout", version],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        name_dir = pkg_path / name
+        if name_dir.is_dir() and any(name_dir.iterdir()):
+            _flatten_package_subfolder(pkg_path, name)
+        else:
+            # Single-package repo: no top-level name folder; materialize root-level context paths
+            if name_dir.exists():
+                shutil.rmtree(name_dir)
+            subprocess.run(
+                ["git", "-C", str(pkg_path), "sparse-checkout", "set"] + SPARSE_PATHS,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(pkg_path), "checkout", version],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
     return pkg_path
 
 
 def update_package_checkout(project_root: Path, name: str, source: str, version: str) -> Path:
-    """Fetch and checkout the given version in the existing package directory. Re-flatten if multi-package layout."""
+    """Fetch and checkout the given version in the existing package directory. Re-flatten if multi-package or subpath layout."""
     pkg_path = get_package_path(project_root, name, source)
     if not pkg_path.exists():
         raise FileNotFoundError(f"Package directory not found: {pkg_path}")
@@ -247,9 +310,12 @@ def update_package_checkout(project_root: Path, name: str, source: str, version:
         capture_output=True,
         text=True,
     )
-    name_dir = pkg_path / name
-    if name_dir.is_dir() and any(name_dir.iterdir()):
-        _flatten_package_subfolder(pkg_path, name)
+    if "/" in name or "\\" in name:
+        _flatten_subpath(pkg_path, name)
+    else:
+        name_dir = pkg_path / name
+        if name_dir.is_dir() and any(name_dir.iterdir()):
+            _flatten_package_subfolder(pkg_path, name)
     return pkg_path
 
 
@@ -275,8 +341,9 @@ def find_package_by_name(
     knowledge_root = get_knowledge_root(project_root)
     if not knowledge_root.exists():
         return None
+    dir_prefix = normalize_name_for_dir(name) + "-"
     for d in knowledge_root.iterdir():
-        if d.is_dir() and d.name.startswith(name + "-"):
+        if d.is_dir() and d.name.startswith(dir_prefix):
             # Recover source from dir name: name-source_normalized -> source is lost, we only have normalized
             # So we cannot recover exact source from disk. Require config for remove/update when we need source.
             return None

@@ -38,6 +38,20 @@ Feature: Cliplin Knowledge Package Manager
     And if the host integration supports skills (e.g. Claude Desktop), the CLI should expose package skills (e.g. via hard links under `.claude/skills`) so they appear installed to the host
 
   @status:implemented
+  @changed:2025-02-23
+  Scenario: Add a knowledge package with subpath in name (nested subfolder)
+    Given my project has `cliplin.yaml` at project root
+    And the package source is a valid Git repository (e.g. github:org/repo) with a nested structure (e.g. AWS/aws-sqs, AWS/aws-dynamo, AWS/aws-s3)
+    And the version (branch, tag, or commit) exists
+    When I run `cliplin knowledge add AWS/aws-sqs github:org/repo main`
+    Then the CLI should add an entry to the `knowledge` section with name "AWS/aws-sqs", source "github:org/repo", version "main"
+    And the CLI should create the package directory under `.cliplin/knowledge/` with the naming convention `AWS-aws-sqs-<source_normalized>` (slash in name normalized to hyphen)
+    And the CLI should clone using sparse checkout of the path "AWS/aws-sqs" only
+    And the installed package root should contain the content of AWS/aws-sqs (flattened, not nested under AWS/aws-sqs)
+    And the CLI should trigger reindexing for the newly added package
+    And the CLI should display a success message
+
+  @status:implemented
   @changed:2025-02-16
   Scenario: Remove a knowledge package
     Given my project has a knowledge package installed under `.cliplin/knowledge/<package_dir>`

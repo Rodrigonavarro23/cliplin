@@ -18,7 +18,7 @@ knowledge:
     version: v1.0.0
 ```
 
-- **name**: Logical name of the package (e.g. `aws`, `commons`).
+- **name**: Logical name of the package (e.g. `aws`, `commons`). May include a subpath (e.g. `AWS/aws-sqs`) to install only a nested subfolder from a monorepo.
 - **source**: Repository location. Supported formats:
   - `github:owner/repo`
   - `https://github.com/owner/repo.git`
@@ -50,6 +50,20 @@ repo/
 ```
 
 When you run `cliplin knowledge add aws github:org/repo main`, only the **content of the `aws/` folder** is installed under `.cliplin/knowledge/aws-.../` (with `adrs/`, `ts4/`, etc. at the root of that directory). The same repo can provide several packages with different names.
+
+### Nested subpath (monorepo with parent folder)
+
+If the repo has a parent folder with subfolders (e.g. `AWS/aws-sqs`, `AWS/aws-dynamo`, `AWS/aws-s3`), you can install a single subfolder by using the path as the name:
+
+```bash
+cliplin knowledge add AWS/aws-sqs github:org/repo main
+```
+
+- **name**: `AWS/aws-sqs` (the path in the repo)
+- **source**: `github:org/repo` (the repo URL, no subpath)
+- **Result**: `.cliplin/knowledge/AWS-aws-sqs-.../` contains only the content of `AWS/aws-sqs` (flattened to the package root)
+
+Use quotes in the shell if needed: `cliplin knowledge add "AWS/aws-sqs" github:org/repo main`.
 
 ### Single-package repo (whole repo is one package)
 

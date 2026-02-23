@@ -23,8 +23,8 @@ Cliplin already has a context store (ADR-002), incremental reindexing (ADR-003),
 
 - **Source of truth for the package list**: The project config file `cliplin.yaml` at project root SHALL have an optional top-level key `knowledge`, whose value is a list of package entries.
 - **Package entry schema**: Each entry SHALL have:
-  - `name`: string, logical name of the package (e.g. `commons`, `redis`, `databases`).
-  - `source`: string, location of the package (e.g. `github:org/repo` or `github:org/repo/subpath`). Format and supported backends (e.g. GitHub) are defined in TS4; the ADR does not fix the exact URI scheme.
+  - `name`: string, logical name of the package (e.g. `commons`, `redis`, `databases`). MAY contain a subpath (e.g. `AWS/aws-sqs`) to install a nested subfolder from a monorepo; the path is used for sparse checkout and flattened to the package root.
+  - `source`: string, location of the package (e.g. `github:org/repo`). Format and supported backends (e.g. GitHub) are defined in TS4; the ADR does not fix the exact URI scheme.
   - `version`: string, version specifier (branch name, commit SHA, or version tag). Used when cloning or updating the package.
 - **Example** (YAML structure only; exact keys are normative in TS4):
 
@@ -43,7 +43,8 @@ Cliplin already has a context store (ADR-002), incremental reindexing (ADR-003),
 - **Installation root**: All knowledge packages SHALL be installed under `.cliplin/knowledge/` (under the project root).
 - **Per-package directory name**: Each package SHALL live in a directory named `<name>-<source_normalized>`, where `source_normalized` is the source string in a form safe for the filesystem (e.g. colons or slashes replaced by a consistent character so the path is unique and valid on all supported OS). Example: `.cliplin/knowledge/commons-github:something/cross-knowledge/commons`.
 - **Content**: Package content is obtained by cloning the repository (or equivalent) and, where supported, using **git sparse checkout** so only the relevant paths are materialized. Technical details (sparse-checkout paths, clone vs shallow) are specified in TS4.
-- **Name as subpath (multi-package repos)**: A repository MAY contain multiple packages as top-level subfolders (e.g. `aws/`, `commons/`, `redis/`). In that case, the package **name** SHALL identify which subfolder to install: only that subfolder’s content is materialized (sparse checkout restricted to `<name>/`). The installed directory SHALL contain that subfolder’s content at its root (so the package root equals the content of `repo/<name>/`). If the repository has no top-level folder matching the name (single-package repo with e.g. `docs/`, `ts4/` at root), the implementation SHALL materialize the root-level context paths (e.g. `docs/adrs`, `docs/ts4`, …) so that layout is also supported.
+- **Name with subpath (nested subfolders)**: The package **name** MAY be a path with slashes (e.g. `AWS/aws-sqs`) to install a nested subfolder from a monorepo. Sparse checkout SHALL use that path; the content SHALL be flattened to the package root.
+- **Name as top-level (multi-package repos)**: A repository MAY contain multiple packages as top-level subfolders (e.g. `aws/`, `commons/`, `redis/`). In that case, the package **name** SHALL identify which subfolder to install: only that subfolder’s content is materialized (sparse checkout restricted to `<name>/`). The installed directory SHALL contain that subfolder’s content at its root (so the package root equals the content of `repo/<name>/`). If the repository has no top-level folder matching the name (single-package repo with e.g. `docs/`, `ts4/` at root), the implementation SHALL materialize the root-level context paths (e.g. `docs/adrs`, `docs/ts4`, …) so that layout is also supported.
 
 ### 3. Context store and reindexing
 

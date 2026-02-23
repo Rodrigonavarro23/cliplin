@@ -447,7 +447,7 @@ This project uses Cliplin and can depend on **knowledge packages**: external rep
 
 - **CLI command**: `cliplin knowledge` with subcommands: `list`, `add`, `remove`, `update`, `show`, `install`.
 - **Configuration**: Package list is declared in `cliplin.yaml` at project root under the top-level key `knowledge` (list of entries with `name`, `source`, `version`).
-- **Installation**: Packages live under `.cliplin/knowledge/<name>-<source_normalized>/`. Content is obtained via git sparse checkout; in multi-package repos the package **name** selects which top-level subfolder to install.
+- **Installation**: Packages live under `.cliplin/knowledge/<name>-<source_normalized>/`. Content is obtained via git sparse checkout. The **name** may be a path (e.g. `AWS/aws-sqs`) to install a nested subfolder from a monorepo, or a top-level folder name for multi-package repos.
 
 ### Subcommands (summary)
 
