@@ -8,19 +8,23 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 
-from cliplin.utils.chromadb import get_chromadb_client, initialize_collections
+from cliplin.utils.chromadb import (
+    get_chromadb_client,
+    get_context_store,
+    initialize_collections,
+)
+from cliplin.utils.fingerprint import get_fingerprint_store
 from cliplin.utils.ai_host_integrations import (
     create_ai_tool_config,
     get_known_ai_tool_ids,
 )
 from cliplin.utils.templates import (
+    FRAMEWORK_PACKAGE_DIR,
     create_cliplin_config,
-    create_framework_adr,
-    create_knowledge_packages_adr,
+    create_framework_knowledge_package,
     create_readme_file,
-    create_ts4_format_adr,
-    create_ui_intent_format_adr,
 )
+from cliplin.commands.reindex import get_files_to_reindex, reindex_file
 
 console = Console()
 
@@ -75,12 +79,9 @@ def init_command(
         create_readme_file(project_root)
         create_cliplin_config(project_root, ai)
         
-        # Create framework context ADRs
+        # Create/update built-in framework package in .cliplin/knowledge/cliplin-framework
         console.print("\n[bold]Creating framework context documentation...[/bold]")
-        create_framework_adr(project_root)
-        create_ts4_format_adr(project_root)
-        create_ui_intent_format_adr(project_root)
-        create_knowledge_packages_adr(project_root)
+        create_framework_knowledge_package(project_root)
         
         # Create AI tool configuration if specified
         if ai:
@@ -103,6 +104,10 @@ def init_command(
         console.print("\n[bold]Validating project structure...[/bold]")
         validate_project_structure(project_root)
         
+        # Index framework package automatically
+        console.print("\n[bold]Indexing framework context...[/bold]")
+        _reindex_framework_package(project_root)
+        
         # Success message
         success_text = (
             "[bold green]✓ Cliplin project initialized successfully![/bold green]\n\n"
@@ -112,10 +117,9 @@ def init_command(
             success_text += f"AI tool: [cyan]{ai}[/cyan]\n"
         success_text += (
             "\nNext steps:\n"
-            "  - Run 'cliplin reindex' to index framework context ADRs\n"
             "  - Add your feature files to docs/features/\n"
             "  - Add your TS4 specs to docs/ts4/\n"
-            "  - Run 'cliplin reindex' again to index your new context files"
+            "  - Run 'cliplin reindex' to index new context files"
         )
         console.print()
         console.print(Panel.fit(success_text, border_style="green"))
@@ -167,4 +171,28 @@ def validate_project_structure(project_root: Path) -> None:
         raise ValueError("Project structure validation failed")
     
     console.print("  [green]✓[/green] All required directories exist")
+
+
+def _reindex_framework_package(project_root: Path) -> None:
+    """Index the built-in framework package into the context store."""
+    store = get_context_store(project_root)
+    fingerprint_store = get_fingerprint_store(project_root)
+    store.ensure_collections()
+    framework_dir = f".cliplin/knowledge/{FRAMEWORK_PACKAGE_DIR}"
+    try:
+        files = get_files_to_reindex(
+            project_root,
+            file_path=None,
+            file_type=None,
+            directory=framework_dir,
+        )
+        for f in files:
+            try:
+                reindex_file(store, fingerprint_store, f, project_root, verbose=False)
+            except Exception:
+                pass
+        if files:
+            console.print(f"  [green]✓[/green] Indexed {len(files)} framework document(s)")
+    except FileNotFoundError:
+        pass  # Framework dir may not exist in edge cases
 

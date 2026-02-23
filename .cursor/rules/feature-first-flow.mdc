@@ -23,4 +23,4 @@ alwaysApply: true
 - **Suggest feature spec changes first** whenever the user's request implies new or changed behavior that should be specified.
 - Every change must be traceable to a specification; the feature file is the primary source of truth for *what* the system does.
 
-See also: `docs/business/framework.md` (section "Feature-first flow"), `docs/adrs/000-cliplin-framework.md` ("Operational flow: feature-first").
+See also: `docs/business/framework.md` (section "Feature-first flow"), framework ADR (in `.cliplin/knowledge/cliplin-framework/docs/adrs/` or query `business-and-architecture` collection).

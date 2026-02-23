@@ -477,6 +477,25 @@ For detailed usage, configuration format, multi-package vs single-package repos,
     console.print(f"  [green]✓[/green] Created docs/adrs/005-knowledge-packages.md")
 
 
+# Built-in framework package: hidden, not in cliplin.yaml, updated on every init
+FRAMEWORK_PACKAGE_DIR = "cliplin-framework"
+
+
+def create_framework_knowledge_package(project_root: Path) -> None:
+    """Create or update the built-in cliplin-framework package in .cliplin/knowledge/.
+
+    This package is hidden (not in cliplin.yaml) and contains the framework ADRs.
+    It is updated on every init or re-init. The reindex command indexes it automatically.
+    """
+    framework_base = project_root / ".cliplin" / "knowledge" / FRAMEWORK_PACKAGE_DIR
+    framework_base.mkdir(parents=True, exist_ok=True)
+    create_framework_adr(framework_base)
+    create_ts4_format_adr(framework_base)
+    create_ui_intent_format_adr(framework_base)
+    create_knowledge_packages_adr(framework_base)
+    console.print(f"  [green]✓[/green] Updated .cliplin/knowledge/{FRAMEWORK_PACKAGE_DIR}/")
+
+
 def create_cursor_mcp_config(target_dir: Path) -> None:
     """Create or update .cursor/mcp.json with Cliplin context MCP server configuration."""
     mcp_file = target_dir / ".cursor" / "mcp.json"
@@ -669,7 +688,7 @@ alwaysApply: true
 - **Suggest feature spec changes first** whenever the user's request implies new or changed behavior that should be specified.
 - Every change must be traceable to a specification; the feature file is the primary source of truth for *what* the system does.
 
-See also: `docs/business/framework.md` (section "Feature-first flow"), `docs/adrs/000-cliplin-framework.md` ("Operational flow: feature-first").
+See also: `docs/business/framework.md` (section "Feature-first flow"), framework ADR (in `.cliplin/knowledge/cliplin-framework/docs/adrs/` or query `business-and-architecture` collection).
 """
 
 

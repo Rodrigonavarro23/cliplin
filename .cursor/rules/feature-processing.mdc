@@ -117,7 +117,6 @@ When a user asks to implement a feature or work with `.feature` files:
      * All code and tests must be traceable back to the specific scenarios
      * **Reindex the updated feature file**: Run `cliplin reindex docs/features/feature-name.feature` to update the context store
      * If you created or modified any context files (ADRs, TS4, business docs), reindex them as well
-     * **Template verification**: If the feature has a reflection in templates (see docs/ts4/feature-template-mapping.ts4), verify and update the corresponding template function in src/cliplin/utils/templates.py so generated content matches the feature spec. Do not leave templates out of sync with features.
      * This ensures the context remains synchronized with the implementation
 
 ### When User Requests Feature Modification
@@ -176,7 +175,6 @@ When a user asks to modify an existing feature:
 3. **Post-Modification**:
    - Reindex all modified context files using `cliplin reindex`
    - Verify that related features still work correctly
-   - **Template verification**: If the modified feature has a template reflection (see docs/ts4/feature-template-mapping.ts4), verify and update src/cliplin/utils/templates.py so generated content matches the updated feature spec.
    - **Verify scenario status**: Ensure all modified scenarios have appropriate tags:
      * Implemented scenarios should have `@status:implemented`
      * Deprecated scenarios should have `@status:deprecated` and should not be modified

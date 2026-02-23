@@ -17,6 +17,7 @@ rules:
     - All packages live under `.cliplin/knowledge/` (project root relative)
     - Per-package directory name: `<name_normalized>-<source_normalized>`. Normalize `name` for filesystem: replace `/` and `\` by `-` (e.g. `AWS/aws-sqs` → `AWS-aws-sqs`). Normalize `source`: replace `:` and `/` by `-`. Result MUST be unique per (name, source) and valid on Windows and Unix. Example: name=AWS/aws-sqs, source=github:org/repo → `.cliplin/knowledge/AWS-aws-sqs-github-org-repo`
     - One directory per package; overwrite or replace on re-install/update
+    - **Built-in framework package**: `cliplin init` creates `.cliplin/knowledge/cliplin-framework/` with framework ADRs (000, 001, 002, 005). This package is hidden: NOT in cliplin.yaml, NOT listed by `cliplin knowledge list`, updated on every init. Reindex indexes it like any other knowledge package.
   - |
     Git sparse checkout (MUST for git-based sources):
     - For `source` that resolves to a Git repository, use git sparse checkout so only the desired content is materialized

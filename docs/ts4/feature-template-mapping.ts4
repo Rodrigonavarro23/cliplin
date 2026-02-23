@@ -12,6 +12,7 @@ rules:
   - |
     Known feature ↔ template mappings:
     - docs/features/knowledge.feature ↔ create_knowledge_packages_adr in src/cliplin/utils/templates.py — generates docs/adrs/005-knowledge-packages.md content (subcommands, behavior, usage). Any change to knowledge scenarios (e.g. new subcommand like install, new option like --force) MUST be reflected in the template.
+    - docs/features/cli.feature ↔ create_framework_knowledge_package in src/cliplin/utils/templates.py — creates the built-in framework package at .cliplin/knowledge/cliplin-framework/ with framework ADRs (000, 001, 002, 005). Any change to init scenarios (e.g. framework package location, ADR list) MUST be reflected in the template.
     - (Add more mappings here when features gain template reflections.)
   - |
     Verification workflow (MUST when modifying a mapped feature):

@@ -17,8 +17,9 @@ Feature: Cliplin CLI Tool
     And I should be able to run `cliplin --version` successfully
     And I should be able to run `cliplin --help` successfully
 
-  @status:implemented
-  @changed:2024-01-15
+  @status:modified
+  @changed:2025-02-23
+  @reason:Framework ADRs moved to built-in package in .cliplin/knowledge/cliplin-framework
   Scenario: Initialize a new Cliplin project with default AI tool
     Given I have the Cliplin CLI tool installed
     And I am in an empty directory or a new project directory
@@ -26,12 +27,20 @@ Feature: Cliplin CLI Tool
     Then the CLI should create configuration files in the current directory
     And the CLI should create the required Cliplin directory structure:
       | Directory | Purpose |
-      | docs/adrs | Architecture Decision Records |
+      | docs/adrs | Project Architecture Decision Records (user-created) |
       | docs/business | Business documentation |
       | docs/features | Feature files (Gherkin) |
       | docs/ts4 | Technical specifications |
       | docs/ui-intent | UI Intent specifications |
       | .cliplin/data/context | Context store (project context store) |
+    And the CLI should create the built-in framework package at `.cliplin/knowledge/cliplin-framework/`
+    And the CLI should create framework ADRs in `.cliplin/knowledge/cliplin-framework/docs/adrs/`:
+      | File | Content |
+      | 000-cliplin-framework.md | Cliplin Framework Overview |
+      | 001-ts4-format.md | TS4 Format and Usage |
+      | 002-ui-intent-format.md | UI Intent Schema Format |
+      | 005-knowledge-packages.md | Knowledge Packages ADR |
+    And the CLI should NOT add the framework package to `cliplin.yaml` (it is a hidden built-in package)
     And the CLI should initialize the context store at `.cliplin/data/context`
     And the CLI should create the required context store collections:
       | Collection Name | Purpose |
@@ -41,6 +50,7 @@ Feature: Cliplin CLI Tool
       | uisi | Stores UI Intent YAML files |
     And the CLI should ensure `.cliplin` is listed in `.gitignore`
     And the CLI should validate that the project structure is correct
+    And the CLI should index the framework package into the context store automatically
     And the CLI should display a success message indicating project initialization is complete
 
   @status:implemented
@@ -169,6 +179,20 @@ Feature: Cliplin CLI Tool
     And if the user declines, the CLI should abort without making changes
     And if Cliplin is not initialized, the CLI should proceed with initialization normally
 
+  @status:new
+  @changed:2025-02-23
+  Scenario: Built-in framework package is hidden and updated on every init
+    Given I have the Cliplin CLI tool installed
+    And I am in an empty directory or a new project directory
+    When I run `cliplin init`
+    Then the CLI should create the built-in framework package at `.cliplin/knowledge/cliplin-framework/`
+    And the framework package should contain framework ADRs in `docs/adrs/` (000, 001, 002, 005)
+    And the framework package should NOT appear in `cliplin.yaml` under the `knowledge` key
+    And the framework package should NOT be listed by `cliplin knowledge list` (it is hidden)
+    When I run `cliplin init` again and confirm to continue
+    Then the CLI should update the framework package at `.cliplin/knowledge/cliplin-framework/` with the latest framework content
+    And the framework ADRs should be overwritten with the current templates
+
   @status:implemented
   @changed:2025-02-16
   @reason:Config file default location moved to project root
@@ -235,6 +259,7 @@ Feature: Cliplin CLI Tool
       | docs/features | *.feature | features |
       | docs/ts4 | *.ts4 | tech-specs |
       | docs/ui-intent | *.yaml | uisi |
+      | .cliplin/knowledge/** | *.md, *.ts4, *.feature, *.yaml | same as project docs |
     And the CLI should check if each file already exists in the context store by file path
     And for each file that exists, the CLI should update it in the context store
     And for each file that does not exist, the CLI should add it to the context store

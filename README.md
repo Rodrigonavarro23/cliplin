@@ -87,16 +87,18 @@ Cliplin automatically creates the directory structure and configures everything 
 .
 ├── cliplin.yaml       # Cliplin config (ai_tool, knowledge, etc.)
 ├── docs/
-│   ├── adrs/          # Architecture Decision Records (incl. 005-knowledge-packages.md)
+│   ├── adrs/          # Project Architecture Decision Records (user-created)
 │   ├── business/      # Business documentation
 │   ├── features/      # Feature files (Gherkin)
 │   ├── ts4/           # Technical specifications
 │   └── ui-intent/     # UI specifications
 └── .cliplin/
-    └── data/context/  # Context store (project context store)
+    ├── data/context/  # Context store (project context store)
+    └── knowledge/
+        └── cliplin-framework/  # Built-in framework ADRs (hidden, updated on init)
 ```
 
-Init also creates framework ADRs in `docs/adrs/` (framework, TS4 format, UI Intent format, **knowledge packages**) so the AI and tools have visibility of available commands and conventions.
+Init creates a built-in framework package at `.cliplin/knowledge/cliplin-framework/` with framework ADRs (Cliplin overview, TS4 format, UI Intent format, **knowledge packages**) so the AI and tools have visibility of available commands and conventions. This package is hidden (not in `cliplin.yaml`) and is updated on every init. **The framework context is indexed automatically** — no need to run `cliplin reindex` after init.
 
 **Note:** Cliplin tools (SPAs) are part of the Cliplin package installation, not your project directory.
 
