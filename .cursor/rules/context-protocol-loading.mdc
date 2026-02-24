@@ -4,13 +4,13 @@ alwaysApply: true
 
 ## Context Loading Protocol
 
-**CRITICAL RULE**: Before starting ANY planning, coding, debugging, fixing, or architectural task, AI assistants MUST follow this context loading protocol.
+**CRITICAL RULE**: For every user request (question or action), AI assistants MUST decide whether project context is required. Whenever context is needed and not already loaded in the current session, you MUST load it from the Cliplin MCP context store *before* answering or acting.
 
 ### When to Load Context (Trigger Words and Actions)
 
-**MANDATORY**: You MUST load context from the Cliplin MCP server (context store) BEFORE any of these actions:
+**MANDATORY**: On every user request, you MUST evaluate whether context is needed. In practice, context is almost always required for the following action types; when you detect them, you MUST load context from the Cliplin MCP server (context store) **before** proceeding:
 
-#### Action Types Requiring Context:
+#### Action Types Where Context Is Required:
 - **Debugging**: Finding and fixing bugs, investigating errors, troubleshooting issues
 - **Implementation**: Writing new code, implementing features, creating components
 - **Fixing**: Correcting errors, fixing bugs, resolving issues
@@ -37,11 +37,11 @@ alwaysApply: true
 - **remove** (remove, delete, eliminate)
 - **enhance** (enhance, improve, optimize)
 
-**If ANY of these words appear in the user's request, you MUST load context BEFORE proceeding.**
+**If ANY of these words appear in the user's request, or if the answer depends on project-specific behavior, you MUST load context BEFORE proceeding.**
 
 ### Mandatory Context Loading Steps
 
-1. **Query context store collections first**: Before beginning ANY task, you MUST query the relevant context store collections using the 'cliplin-context' MCP server (Cliplin MCP) to load context.
+1. **Query context store collections first (considering session state)**: For each request where context is needed, check whether the relevant specs and docs (features, ADRs, TDRs/TS4, UI Intent, knowledge packages) are already present in the current session. If not, you MUST query the relevant context store collections using the 'cliplin-context' MCP server (Cliplin MCP) to load them.
 
 2. **Determine Relevant Collections**: Based on the task domain, entities, and requirements, identify which collections contain relevant context. **Prefer TDR over TS4**: query `technical-decision-records` first; use `tech-specs` (TS4) as fallback and, if you only find TS4, suggest migrating to TDR (docs/business/tdr.md).
    - `business-and-architecture`: ADRs, business documentation, architectural decisions
@@ -173,6 +173,8 @@ This protocol is **MANDATORY** and must be followed before:
 - Making architectural decisions
 - Refactoring or optimizing code
 - Any action triggered by the keywords listed above
+
+This protocol applies to **all AI hosts and templates** (Cursor, Claude Desktop, and any others); every host-specific template MUST enforce the same context-loading behaviour.
 
 **Remember**: Loading context takes seconds and saves hours. Skipping this step wastes tokens, time, and creates technical debt.
 

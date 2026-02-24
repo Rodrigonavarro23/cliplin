@@ -767,24 +767,28 @@ alwaysApply: true
 
 ## Feature-first flow: spec before code
 
-**CRITICAL**: For Cliplin to work correctly, **the feature file is always the source of truth**. On any user change or request you MUST follow this order:
+**CRITICAL**: For Cliplin to work correctly, **project specifications (feature files, ADRs, TDRs/TS4 and related documentation) are always the single source of truth**. On any user change or request you MUST first consult the specs, update them if needed, and only then touch code.
 
-### 1. Consider the feature spec first
+### 1. Always consult and update specs first
 
-- **Before** modifying code, TDR/TS4, ADRs, or any other file, ask: does this change or request require an update to a feature spec?
-- If **yes** or **unclear**: **suggest** updating (or creating) the relevant `.feature` file in `docs/features/` first. Propose the spec changes and get user agreement if needed; then update the feature file **before** touching any other file.
-- If **no** (e.g. pure refactor that does not change behavior, or task explicitly outside feature scope): you may proceed without changing a feature file, but any new or changed behavior must still be traceable to a spec.
+- **Before** modifying code or non-spec files, you MUST look at the existing specs:
+  - `.feature` files in `docs/features/`
+  - TDRs in `docs/tdrs/` (preferred) and legacy TS4 in `docs/ts4/`
+  - ADRs and business docs in `docs/adrs/` and `docs/business/`
+  - Any relevant specs from `.cliplin/knowledge/**`
+- If the request implies new behavior, changed behavior, or clarifications, you MUST **first update (or create) the corresponding specs**. Propose the spec changes and get user agreement when needed; only after the specs are correct can you proceed to code.
+- Even for apparent "pure refactors" that should not change behavior, you MUST confirm that the existing behavior is covered by current specs and that the refactor keeps the system aligned with them. Never introduce behavior that is not specified.
 
-### 2. Then implement to fulfill the spec
+### 2. Then implement strictly to satisfy the specs
 
-- **After** the feature spec is correct (updated or confirmed), perform refactors or write new code **only to satisfy the specs**. The spec drives what is built; code does not drive the spec.
-- If no feature existed for the scope: creating/updating the `.feature` file was the first step; implementation follows from it.
+- **After** the relevant specs are correct (updated or confirmed), perform refactors or write new code **only to satisfy those specs**. Specs drive what is built; code does not drive the spec.
+- If no spec existed for the scope, creating/updating the `.feature` file (and any needed ADR/TDR) is the first step; implementation strictly follows from those specs.
 
 ### Summary
 
-- **Spec first, then code.** Never change code first and leave the feature file out of date or missing.
-- **Suggest feature spec changes first** whenever the user's request implies new or changed behavior that should be specified.
-- Every change must be traceable to a specification; the feature file is the primary source of truth for *what* the system does.
+- **Spec first, then code — always.** Never change code first or rely on undocumented behavior.
+- **All behavior must be specified**: any new or changed behavior must be present in feature files and, when appropriate, ADRs/TDRs.
+- Every change must be traceable to explicit specifications; specs are the primary source of truth for *what* and *how* the system should behave.
 
 See also: `docs/business/framework.md` (section "Feature-first flow"), framework ADR (in `.cliplin/knowledge/cliplin-framework/docs/adrs/` or query `business-and-architecture` collection).
 """
@@ -1013,13 +1017,13 @@ alwaysApply: true
 
 ## Context Loading Protocol
 
-**CRITICAL RULE**: Before starting ANY planning, coding, debugging, fixing, or architectural task, AI assistants MUST follow this context loading protocol.
+**CRITICAL RULE**: For every user request (question or action), AI assistants MUST decide whether project context is required. Whenever context is needed and not already loaded in the current session, you MUST load it from the Cliplin MCP context store *before* answering or acting.
 
 ### When to Load Context (Trigger Words and Actions)
 
-**MANDATORY**: You MUST load context from the Cliplin MCP server (context store) BEFORE any of these actions:
+**MANDATORY**: On every user request, you MUST evaluate whether context is needed. In practice, context is almost always required for the following action types; when you detect them, you MUST load context from the Cliplin MCP server (context store) **before** proceeding:
 
-#### Action Types Requiring Context:
+#### Action Types Where Context Is Required:
 - **Debugging**: Finding and fixing bugs, investigating errors, troubleshooting issues
 - **Implementation**: Writing new code, implementing features, creating components
 - **Fixing**: Correcting errors, fixing bugs, resolving issues
@@ -1046,11 +1050,11 @@ alwaysApply: true
 - **remove** (remove, delete, eliminate)
 - **enhance** (enhance, improve, optimize)
 
-**If ANY of these words appear in the user's request, you MUST load context BEFORE proceeding.**
+**If ANY of these words appear in the user's request, or if the answer depends on project-specific behavior, you MUST load context BEFORE proceeding.**
 
 ### Mandatory Context Loading Steps
 
-1. **Query context store collections first**: Before beginning ANY task, you MUST query the relevant context store collections using the 'cliplin-context' MCP server (Cliplin MCP) to load context.
+1. **Query context store collections first (considering session state)**: For each request where context is needed, check whether the relevant specs and docs (features, ADRs, TDRs/TS4, UI Intent, knowledge packages) are already present in the current session. If not, you MUST query the relevant context store collections using the 'cliplin-context' MCP server (Cliplin MCP) to load them.
 
 2. **Determine Relevant Collections**: Based on the task domain, entities, and requirements, identify which collections contain relevant context. **Prefer TDR over TS4**: query `technical-decision-records` first; use `tech-specs` (TS4) as fallback and, if you only find TS4, suggest migrating to TDR (docs/business/tdr.md).
    - `business-and-architecture`: ADRs, business documentation, architectural decisions
@@ -1182,6 +1186,8 @@ This protocol is **MANDATORY** and must be followed before:
 - Making architectural decisions
 - Refactoring or optimizing code
 - Any action triggered by the keywords listed above
+
+This protocol applies to **all AI hosts and templates** (Cursor, Claude Desktop, and any others); every host-specific template MUST enforce the same context-loading behaviour.
 
 **Remember**: Loading context takes seconds and saves hours. Skipping this step wastes tokens, time, and creates technical debt.
 
