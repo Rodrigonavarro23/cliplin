@@ -99,7 +99,7 @@ cliplin knowledge add aws github:Rodrigonavarro23/cliplin-knowledge main
 - Clones the repo with **sparse checkout** (only the needed paths or the `<name>/` subfolder).
 - Installs under `.cliplin/knowledge/<name>-<source_normalized>/`.
 - **Reindexes** that package so its content is in the context store (business-and-architecture, tech-specs, features, uisi as per file type).
-- If you use Claude Desktop, skills from the package are linked under `.claude/skills/`.
+- If your host supports skills (e.g. Claude Desktop or Cursor), skills from the package are linked under the host's skills directory (`.claude/skills/` or `.cursor/skills/`).
 
 ### Remove a package
 
@@ -110,7 +110,7 @@ cliplin knowledge remove <name>
 - Removes the entry from `cliplin.yaml`.
 - Deletes the package directory under `.cliplin/knowledge/`.
 - **Removes all documents** that belonged to that package from the context store and updates the fingerprint store.
-- Removes skill links (e.g. under `.claude/skills/`) if the host integration created them.
+- Removes skill links (e.g. under `.claude/skills/` or `.cursor/skills/`) if the host integration created them.
 
 ### Update a package
 
@@ -180,7 +180,7 @@ For content to be indexed correctly, package repos should use the usual Cliplin 
 - **TDR**: `tdrs/`, `docs/tdrs/` (with `.md`). Legacy: **TS4** `ts4/`, `docs/ts4/` (with `.ts4`).
 - **Features**: `features/`, `docs/features/` (with `.feature`).
 - **UI intent**: `ui-intent/`, `docs/ui-intent/` (with `.yaml`).
-- **Skills** (optional): folders containing `SKILL.md` under `skills/` (e.g. `skills/skill-folder/SKILL.md` or `skills/<pkg>/skill-folder/SKILL.md`) — if the host supports it (e.g. Claude Desktop), Cliplin finds all folders that contain `SKILL.md` and creates hard links for each file under `.claude/skills/`, so you get `.claude/skills/skill-folder/SKILL.md` (one level only, as Claude expects).
+- **Skills** (optional): folders containing `SKILL.md` under `skills/` (e.g. `skills/skill-folder/SKILL.md` or `skills/<pkg>/skill-folder/SKILL.md`) — if the host supports skills (e.g. Claude Desktop, Cursor), Cliplin finds all folders that contain `SKILL.md` and creates hard links under the host's skills directory (`.claude/skills/` or `.cursor/skills/`), one level only (e.g. `.claude/skills/skill-folder/SKILL.md` or `.cursor/skills/skill-folder/SKILL.md`).
 
 Nested subfolders (e.g. `adrs/framework/001-foo.md`) are supported; indexing is structure-agnostic within these path patterns.
 

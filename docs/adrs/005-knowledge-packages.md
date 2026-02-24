@@ -56,7 +56,7 @@ Cliplin already has a context store (ADR-002), incremental reindexing (ADR-003),
 ### 4. Skills and host-specific behavior
 
 - **Host-specific**: How (or whether) to expose package content that is host-specific (e.g. **skills**) is left to each AI host integration. There is no requirement that all hosts support the same behavior.
-- **Supporting hosts**: If an integration supports skills (e.g. Claude Desktop), it MAY expose skills from installed knowledge packages (e.g. via hard links under `.claude/skills`) so they appear as installed to the host. On `knowledge remove`, those links SHALL be removed so the host no longer sees the package’s skills.
+- **Supporting hosts**: If an integration supports skills (e.g. Claude Desktop, Cursor), it MAY expose skills from installed knowledge packages via hard links under the host's skills directory (e.g. `.claude/skills`, `.cursor/skills`) so they appear as installed to the host. On `knowledge remove`, those links SHALL be removed so the host no longer sees the package’s skills.
 - **Non-supporting hosts**: If an integration does not support skills (or does not implement this behavior), it SHALL perform no action for skills; the rest of the knowledge feature (context store, reindex) still applies.
 
 ### 5. CLI command

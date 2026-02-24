@@ -35,7 +35,7 @@ Feature: Cliplin Knowledge Package Manager
     And the CLI should clone the repository using git sparse checkout so only relevant paths (e.g. docs/adrs, docs/tdrs, docs/business, docs/features, rules, skills) are materialized
     And the CLI should trigger reindexing for the newly added package so its documents are indexed into the context store (business-and-architecture, tech-specs, features, uisi as per file type)
     And the CLI should display a success message
-    And if the host integration supports skills (e.g. Claude Desktop), the CLI should expose package skills (e.g. via hard links under `.claude/skills`) so they appear installed to the host
+    And if the host integration supports skills (e.g. Claude Desktop → `.claude/skills`, Cursor → `.cursor/skills`), the CLI should expose package skills via hard links under the host's skills directory so they appear installed to the host
 
   @status:implemented
   @changed:2025-02-23
@@ -61,7 +61,7 @@ Feature: Cliplin Knowledge Package Manager
     And the CLI should delete the package directory under `.cliplin/knowledge/`
     And the CLI should remove from the context store all documents whose path is under the removed package root
     And the CLI should update the fingerprint store to remove or invalidate entries for those document paths
-    And if the host integration had created skill links for this package (e.g. under `.claude/skills`), the CLI should remove those links
+    And if the host integration had created skill links for this package (e.g. under `.claude/skills` or `.cursor/skills`), the CLI should remove those links
     And the CLI should display a success message
 
   @status:implemented

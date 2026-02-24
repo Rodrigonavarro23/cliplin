@@ -37,6 +37,7 @@ code_refs:
   - "docs/tdrs/system-modules.md"
   - "docs/tdrs/knowledge-packages.md"
   - "docs/tdrs/claude-desktop-integration.md"
+  - "docs/tdrs/cursor-integration.md"
   - "docs/adrs/002-chromadb-rag-context-base.md"
   - "docs/adrs/003-incremental-context-reindexing.md"
   - "docs/adrs/005-knowledge-packages.md"
