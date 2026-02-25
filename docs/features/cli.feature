@@ -180,6 +180,7 @@ Feature: Cliplin CLI Tool
     And if `.cursor/mcp.json` exists and contains Cliplin configuration, the CLI should preserve existing MCP server entries
     And if `.cursor/mcp.json` exists but does not contain Cliplin configuration, the CLI should add the Cliplin MCP server configuration
     And if the user confirms, the CLI should proceed with initialization
+    And when the user has confirmed on an already-initialized project, the CLI should run knowledge install at the end to reinstall knowledge packages listed in cliplin.yaml
     And if the user declines, the CLI should abort without making changes
     And if Cliplin is not initialized, the CLI should proceed with initialization normally
 

@@ -25,6 +25,7 @@ from cliplin.utils.templates import (
     create_readme_file,
 )
 from cliplin.commands.reindex import get_files_to_reindex, reindex_file
+from cliplin.commands.knowledge import knowledge_install_command
 
 console = Console()
 
@@ -48,16 +49,17 @@ def init_command(
 ) -> None:
     """Initialize a new Cliplin project in the current directory."""
     project_root = Path.cwd()
-    
+    was_already_initialized = is_cliplin_initialized(project_root)
+
     # Check if already initialized
-    if is_cliplin_initialized(project_root):
+    if was_already_initialized:
         console.print(
             "[yellow]⚠[/yellow]  Cliplin appears to be already initialized in this directory."
         )
         if not typer.confirm("Do you want to continue anyway?"):
             console.print("[yellow]Aborted.[/yellow]")
             raise typer.Exit()
-    
+
     console.print(Panel.fit("[bold cyan]Initializing Cliplin Project[/bold cyan]"))
     
     # Validate Python version
@@ -107,7 +109,12 @@ def init_command(
         # Index framework package automatically
         console.print("\n[bold]Indexing framework context...[/bold]")
         _reindex_framework_package(project_root)
-        
+
+        # On re-init, reinstall knowledge packages from config
+        if was_already_initialized:
+            console.print("\n[bold]Installing knowledge packages from config...[/bold]")
+            knowledge_install_command(force=False)
+
         # Success message
         success_text = (
             "[bold green]✓ Cliplin project initialized successfully![/bold green]\n\n"
