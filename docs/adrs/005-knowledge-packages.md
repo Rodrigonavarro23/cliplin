@@ -46,6 +46,69 @@ Cliplin already has a context store (ADR-002), incremental reindexing (ADR-003),
 - **Name with subpath (nested subfolders)**: The package **name** MAY be a path with slashes (e.g. `AWS/aws-sqs`) to install a nested subfolder from a monorepo. Sparse checkout SHALL use that path; the content SHALL be flattened to the package root.
 - **Name as top-level (multi-package repos)**: A repository MAY contain multiple packages as top-level subfolders (e.g. `aws/`, `commons/`, `redis/`). In that case, the package **name** SHALL identify which subfolder to install: only that subfolder’s content is materialized (sparse checkout restricted to `<name>/`). The installed directory SHALL contain that subfolder’s content at its root (so the package root equals the content of `repo/<name>/`). If the repository has no top-level folder matching the name (single-package repo with e.g. `docs/`, `ts4/` at root), the implementation SHALL materialize the root-level context paths (e.g. `docs/adrs`, `docs/ts4`, …) so that layout is also supported.
 
+#### 2.1. Repository layout examples
+
+To make this structure explicit for AI systems and humans, knowledge package repositories SHOULD follow one of these patterns:
+
+- **Single-package repository** (one knowledge package per repo). Example: a commons library:
+
+  ```text
+  cliplin-commons/
+  ├── adrs/
+  ├── tdrs/
+  ├── skills/
+  └── business/
+  ```
+
+  In `cliplin.yaml` this would typically be declared as:
+
+  ```yaml
+  knowledge:
+    - name: cliplin-commons
+      source: github:org/cliplin-commons
+      version: main
+  ```
+
+- **Multi-package repository with nested subpackages** (one repo, many knowledge packages). Example: provider- and service-specific packages:
+
+  ```text
+  cliplin-knowledge/
+  ├── aws/
+  │   ├── sqs/
+  │   │   ├── adrs/
+  │   │   ├── tdrs/
+  │   │   ├── skills/
+  │   │   └── business/
+  │   └── ec2/
+  │       ├── adrs/
+  │       ├── tdrs/
+  │       ├── skills/
+  │       └── business/
+  └── google-cloud/
+      └── pubsub/
+          ├── adrs/
+          ├── tdrs/
+          ├── skills/
+          └── business/
+  ```
+
+  Each leaf folder (`aws/sqs`, `aws/ec2`, `google-cloud/pubsub`, …) acts as an independent knowledge package. In `cliplin.yaml` you can declare them using the path as `name`, for example:
+
+  ```yaml
+  knowledge:
+    - name: aws/sqs
+      source: github:org/cliplin-knowledge
+      version: main
+    - name: aws/ec2
+      source: github:org/cliplin-knowledge
+      version: main
+    - name: google-cloud/pubsub
+      source: github:org/cliplin-knowledge
+      version: main
+  ```
+
+  The implementation uses sparse checkout so that only the selected subfolder is materialized under `.cliplin/knowledge/<name>-<source_normalized>/`, with `adrs/`, `tdrs/`, `skills/`, and `business/` at the package root.
+
 ### 3. Context store and reindexing
 
 - **Same collections as project docs**: Documents inside `.cliplin/knowledge/**` SHALL be treated as project context. The same collection mapping applies: e.g. ADRs (under any `adrs` or `docs/adrs`-like path within a package) → `business-and-architecture`; TS4 → `tech-specs`; features → `features`; business docs → `business-and-architecture`; UI intent → `uisi`. The mapping and directory scanning SHALL be defined in one place (single source of truth) and SHALL include knowledge package roots; see TS4 knowledge-reindex-context.
