@@ -1,4 +1,8 @@
-# Cliplin - Spec Driven Development Framework... *with tools*
+<div align="center">
+  <img src="cliplin-icon.png" alt="Cliplin" width="80" />
+</div>
+
+# Cliplin - Feature-Centric Spec Driven Development Framework
 
 > **Describe the problem clearly, and half of it is already solved.**  
 > — *Kidlin's Law*
@@ -47,7 +51,7 @@ Cliplin organizes specifications into four complementary pillars, each with a pr
 - They are the **source of truth** of the system
 - **Key principle**: If a feature doesn't exist, the functionality doesn't exist
 
-#### 2. 🎨 UI Intent Specifications (YAML)
+#### 2. 🎨 UI Intent Specifications (YAML) **[WIP]**
 **Defines HOW the system expresses intent to users**
 
 - Describe screens, components, roles, and responsibilities
