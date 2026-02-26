@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cliplin — Spec-Driven Development with tools</title>
+  <meta name="description" content="Specification-driven development framework for the AI era. Four pillars, knowledge system, and MCP so code follows specs." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --surface: #18181c;
+      --surface2: #222228;
+      --text: #e8e8ed;
+      --text-muted: #9898a0;
+      --accent: #22d3c4;
+      --accent-dim: #0d9488;
+      --pillar-1: #a78bfa;
+      --pillar-2: #f472b6;
+      --pillar-3: #38bdf8;
+      --pillar-4: #fbbf24;
+      --radius: 12px;
+      --radius-lg: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Noto Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 1.05rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Hero */
+    .hero {
+      min-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 4rem 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -20%;
+      width: 80%;
+      height: 120%;
+      background: radial-gradient(ellipse, rgba(34, 211, 196, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero .title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .hero .title-row img {
+      height: clamp(4rem, 10vw, 5.5rem);
+      width: auto;
+      display: block;
+    }
+
+    .hero h1 {
+      font-family: 'Noto Sans', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2.2rem, 6vw, 3.5rem);
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin: 0;
+    }
+
+    .hero .tagline {
+      font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+      color: var(--text);
+      font-weight: 600;
+      max-width: 32ch;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero .subtitle {
+      font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+      color: var(--text-muted);
+      max-width: 42ch;
+      margin-bottom: 2rem;
+    }
+
+    .hero .law {
+      font-style: italic;
+      color: var(--accent);
+      font-size: 1.1rem;
+      margin-top: 2rem;
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--radius);
+      text-decoration: none;
+      margin-top: 1rem;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(34, 211, 196, 0.35);
+    }
+
+    /* Sections */
+    section {
+      padding: 4rem 0;
+      border-top: 1px solid var(--surface2);
+    }
+
+    section h2 {
+      font-family: 'Noto Sans', sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    section .lead {
+      color: var(--text-muted);
+      font-size: 1.15rem;
+      margin-bottom: 2rem;
+      max-width: 50ch;
+    }
+
+    /* What is */
+    .what-grid {
+      display: grid;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .what-card {
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem 1.75rem;
+    }
+
+    .what-card strong {
+      color: var(--accent);
+    }
+
+    /* Four Pillars */
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+
+    .pillar {
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .pillar:hover {
+      border-color: var(--surface2);
+      transform: translateY(-2px);
+    }
+
+    .pillar .icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+      line-height: 1;
+    }
+
+    .pillar h3 {
+      font-family: 'Noto Sans', sans-serif;
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .pillar p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .pillar-1 { border-left: 3px solid var(--pillar-1); }
+    .pillar-2 { border-left: 3px solid var(--pillar-2); }
+    .pillar-3 { border-left: 3px solid var(--pillar-3); }
+    .pillar-4 { border-left: 3px solid var(--pillar-4); }
+
+    .pillar .wip-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.25rem 0.6rem;
+      margin-left: 0.5rem;
+      background: rgba(251, 191, 36, 0.25);
+      color: var(--pillar-4);
+      border: 1px solid var(--pillar-4);
+      border-radius: 4px;
+      vertical-align: middle;
+    }
+
+    /* Knowledge */
+    .knowledge-block {
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+
+    .knowledge-block .knowledge-highlight {
+      background: rgba(34, 211, 196, 0.08);
+      border-left: 3px solid var(--accent);
+      padding: 1rem 1.25rem;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .knowledge-block h3 {
+      font-family: 'Noto Sans', sans-serif;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+
+    .knowledge-block ul {
+      list-style: none;
+      margin-top: 1rem;
+    }
+
+    .knowledge-block li {
+      padding: 0.4rem 0;
+      padding-left: 1.25rem;
+      position: relative;
+      color: var(--text-muted);
+    }
+
+    .knowledge-block li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    /* Install */
+    .install-steps {
+      margin-top: 2rem;
+    }
+
+    .install-step {
+      margin-bottom: 2rem;
+    }
+
+    .install-step h3 {
+      font-family: 'Noto Sans', sans-serif;
+      font-weight: 600;
+      font-size: 1.15rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .install-step p {
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      font-size: 0.98rem;
+    }
+
+    pre, .code {
+      font-family: 'Noto Sans', ui-monospace, monospace;
+      background: var(--surface2);
+      border: 1px solid var(--surface);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin: 0.5rem 0 1rem 0;
+    }
+
+    .code-with-copy {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0.5rem 0 1rem 0;
+    }
+
+    .code-with-copy pre {
+      flex: 1;
+      margin: 0;
+      min-width: 0;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      padding: 0.5rem 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-family: 'Noto Sans', sans-serif;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+
+    .copy-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .copy-btn.copied {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .flow-diagram {
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--surface2);
+      text-align: center;
+    }
+
+    .flow-diagram-title {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .flow-steps {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem 0.25rem;
+    }
+
+    .flow-step {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: var(--radius);
+      min-width: 5.5rem;
+    }
+
+    .flow-step-icon {
+      font-size: 1.75rem;
+      line-height: 1;
+    }
+
+    .flow-step-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 0 0.25rem;
+    }
+
+    @media (max-width: 520px) {
+      .flow-steps { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); padding: 0.15rem 0; }
+    }
+
+    .code-inline {
+      font-family: ui-monospace, monospace;
+      background: var(--surface2);
+      padding: 0.15em 0.45em;
+      border-radius: 6px;
+      font-size: 0.9em;
+    }
+
+    /* Commands summary */
+    .commands {
+      display: grid;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .commands code {
+      display: block;
+      padding: 0.6rem 1rem;
+      background: var(--surface2);
+      border-radius: 8px;
+      font-size: 0.88rem;
+    }
+
+    /* Footer */
+    footer {
+      padding: 3rem 0;
+      border-top: 1px solid var(--surface2);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* GitHub corner - always visible */
+    .github-corner {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 100;
+      padding: 0.75rem 1rem;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .github-corner:hover {
+      color: var(--accent);
+    }
+
+    .github-corner svg {
+      display: block;
+      width: 28px;
+      height: 28px;
+    }
+  </style>
+</head>
+<body>
+  <a href="https://github.com/Rodrigonavarro23/cliplin" class="github-corner" aria-label="View source on GitHub" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+    </svg>
+  </a>
+  <main>
+    <header class="hero">
+      <div class="container">
+        <div class="title-row">
+          <img src="cliplin-icon.png" alt="" width="44" height="44" />
+          <h1>Cliplin</h1>
+        </div>
+        <p class="tagline">Feature-centric Spec-Driven Development framework.</p>
+        <p class="subtitle">Specifications are the source of truth; code is the output of the system.</p>
+        <p class="law">"Describe the problem clearly, and half of it is already solved." — Kidlin's Law</p>
+        <a class="cta" href="#installation">Install and get started →</a>
+      </div>
+    </header>
+
+    <section id="what-is" aria-labelledby="heading-what-is">
+      <div class="container">
+        <h2 id="heading-what-is">What is Cliplin?</h2>
+        <p class="lead">An operational framework that brings specification-driven development to real projects, with real teams and real constraints.</p>
+        <div class="what-grid">
+          <div class="what-card">
+            <strong>The problem:</strong> AI tools fail in enterprise environments not because models are weak, but because context is implicit, fragmented, or inconsistent. There is no single source of truth.
+          </div>
+          <div class="what-card">
+            <strong>The solution:</strong> Specifications live versioned in the repository. AI only acts on well-defined specifications. Every change is traceable to a specification.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pillars" aria-labelledby="heading-pillars">
+      <div class="container">
+        <h2 id="heading-pillars">The four pillars of Cliplin</h2>
+        <p class="lead">Four complementary specification types, each with a clear responsibility.</p>
+        <div class="pillars">
+          <article class="pillar pillar-1">
+            <div class="icon">🎯</div>
+            <h3>Business Features</h3>
+            <p><strong>.feature</strong> (Gherkin). Defines <em>what</em> the system must do and <em>why</em>. If the feature doesn't exist, the functionality doesn't exist.</p>
+          </article>
+          <article class="pillar pillar-2">
+            <div class="icon">⚙️</div>
+            <h3>TDR</h3>
+            <p><strong>Markdown</strong>. Technical Decision Records. Defines <em>how</em> to implement: conventions, validation rules, technical contract.</p>
+          </article>
+          <article class="pillar pillar-3">
+            <div class="icon">📋</div>
+            <h3>ADRs and business</h3>
+            <p><strong>Markdown</strong>. Preserves <em>why</em> technical decisions were made. Prevents reopening closed decisions.</p>
+          </article>
+          <article class="pillar pillar-4">
+            <div class="icon">🎨</div>
+            <h3>UI Intent <span class="wip-badge" aria-label="Work in progress">WIP</span></h3>
+            <p><strong>YAML</strong>. Defines <em>how</em> the system expresses intent to users: screens, components, roles. Intent, not pixels.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="knowledge" aria-labelledby="heading-knowledge">
+      <div class="container">
+        <h2 id="heading-knowledge">Shared knowledge, made simple</h2>
+        <p class="lead">Share specs and know-how with anyone—your team, other teams, or the wider community. Cliplin’s knowledge system lets you add external packages (ADRs, TDRs, features, rules) and have them indexed like the rest of your project, so they become part of your project’s general knowledge.</p>
+        <div class="knowledge-block">
+          <p class="knowledge-highlight">Package content is indexed in the same context store as your own specs. The AI doesn’t see “your docs” vs “external docs”—it sees one body of knowledge. Shared knowledge is first-class.</p>
+          <h3>Why use it?</h3>
+          <ul>
+            <li><strong>Share with anyone:</strong> internal teams, other companies, or open-source—one simple add and it’s part of the project.</li>
+            <li><strong>Version it:</strong> pin by branch, tag, or commit so upgrades are under your control.</li>
+            <li><strong>One context:</strong> your specs and package specs are queried together; no copy-paste, no second-class context.</li>
+          </ul>
+          <h3 style="margin-top: 1.5rem;">Add a package</h3>
+          <div class="commands">
+            <code>cliplin knowledge add &lt;name&gt; github:org/repo main</code>
+          </div>
+          <p style="margin-top: 0.75rem; color: var(--text-muted); font-size: 0.95rem;">For list, show, update, remove and full usage, see the <a href="https://github.com/Rodrigonavarro23/cliplin#6-manage-knowledge-packages-optional" style="color: var(--accent);">README</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="installation" aria-labelledby="heading-installation">
+      <div class="container">
+        <h2 id="heading-installation">Installation and usage</h2>
+        <p class="lead">Requirements: Python 3.10+, <a href="https://github.com/astral-sh/uv" style="color: var(--accent);">uv</a> (recommended), and a compatible AI assistant (Cursor, Claude Desktop, etc.).</p>
+
+        <div class="install-steps">
+          <div class="install-step">
+            <h3>1. Install Cliplin</h3>
+            <p>Recommended: install from GitHub with uv to always get the latest version.</p>
+            <div class="code-with-copy">
+              <pre><code id="install-cmd">uv tool install git+https://github.com/Rodrigonavarro23/cliplin.git</code></pre>
+              <button type="button" class="copy-btn" data-copy-source="install-cmd" aria-label="Copy command">Copy</button>
+            </div>
+          </div>
+
+          <div class="install-step">
+            <h3>2. Initialize your project</h3>
+            <p>Creates the directory structure and configures the AI host.</p>
+            <pre><code>cliplin init --ai claude-desktop</code></pre>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Cliplin supports: Cursor, Claude Desktop, and more. See the <a href="https://github.com/Rodrigonavarro23/cliplin#initialize-your-project" style="color: var(--accent);">README</a> for options.</p>
+            <p>This creates <code class="code-inline">cliplin.yaml</code>, <code class="code-inline">docs/features</code>, <code class="code-inline">docs/tdrs</code>, <code class="code-inline">docs/adrs</code>, <code class="code-inline">docs/ui-intent</code>, and the framework package at <code class="code-inline">.cliplin/knowledge/cliplin-framework/</code>.</p>
+          </div>
+
+          <div class="install-step">
+            <h3>3. Write specs and index</h3>
+            <p>Write features, TDRs, and ADRs. Then index so the Cliplin MCP (context store) can search them semantically.</p>
+            <pre><code>cliplin reindex
+cliplin reindex --dry-run   # preview
+cliplin reindex --type tdr  # by type</code></pre>
+          </div>
+
+          <div class="install-step">
+            <h3>4. Work with AI</h3>
+            <p>With Cliplin configured, the AI loads context from the MCP, follows the feature-first flow, and applies TDRs and ADRs when generating code.</p>
+          </div>
+
+          <div class="flow-diagram">
+            <p class="flow-diagram-title">Spec-first flow</p>
+            <div class="flow-steps" role="img" aria-label="Flow: ADRs and Business, then TDRs, then Feature files, then Implement">
+              <div class="flow-step">
+                <span class="flow-step-icon" aria-hidden="true">📋</span>
+                <span class="flow-step-label">ADRs &amp; Business</span>
+              </div>
+              <span class="flow-arrow" aria-hidden="true">→</span>
+              <div class="flow-step">
+                <span class="flow-step-icon" aria-hidden="true">⚙️</span>
+                <span class="flow-step-label">TDRs</span>
+              </div>
+              <span class="flow-arrow" aria-hidden="true">→</span>
+              <div class="flow-step">
+                <span class="flow-step-icon" aria-hidden="true">🎯</span>
+                <span class="flow-step-label">Feature files</span>
+              </div>
+              <span class="flow-arrow" aria-hidden="true">→</span>
+              <div class="flow-step">
+                <span class="flow-step-icon" aria-hidden="true">🚀</span>
+                <span class="flow-step-label">Implement</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <p><strong>Cliplin</strong> doesn't replace engineers, tools, or processes. It replaces ambiguity.</p>
+      <p style="margin-top: 0.75rem;"><a href="https://github.com/Rodrigonavarro23/cliplin">Repository</a> · <a href="https://github.com/Rodrigonavarro23/cliplin/blob/main/README.md">README</a> · MIT License</p>
+    </div>
+  </footer>
+  <script>
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id = this.getAttribute('data-copy-source');
+        var el = id ? document.getElementById(id) : null;
+        var text = el ? el.textContent : '';
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(function() {
+          var label = btn.getAttribute('aria-label') || 'Copy';
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          btn.setAttribute('aria-label', 'Copied');
+          setTimeout(function() {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+            btn.setAttribute('aria-label', label);
+          }, 2000);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

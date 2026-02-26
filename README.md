@@ -3,7 +3,7 @@
 > **Describe the problem clearly, and half of it is already solved.**  
 > — *Kidlin's Law*
 
-**Cliplin** is a command-line tool that enables **Spec-Driven Development** in your projects, taking human-AI collaboration to the next level.
+**Cliplin** is a framework that enables **Feature-centric Spec-Driven Development** in your projects, taking human-AI collaboration to the next level.
 
 ---
 
@@ -460,5 +460,6 @@ Contributions, issues, and feature requests are welcome. Help us make Spec-Drive
 
 **Questions?** Open an issue or check the documentation:
 
+- **Landing page (GitHub Pages):** [pages/](pages/) — source for the project site; see [pages/README.md](pages/README.md) for how to publish.
 - Framework and pillars: [docs/business/framework.md](docs/business/framework.md)
 - Knowledge packages: [docs/business/knowledge-packages.md](docs/business/knowledge-packages.md)
