@@ -55,9 +55,28 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 4rem 0;
+      padding: 4rem 0 0;
       position: relative;
       overflow: hidden;
+    }
+
+    .hero .container:first-of-type {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .hero .typewriter-block {
+      margin-top: auto;
+      width: 100%;
+      text-align: center;
+      padding-bottom: 1rem;
+    }
+
+    .hero .typewriter-line {
+      display: inline-flex;
+      justify-content: center;
     }
 
     .hero::before {
@@ -406,6 +425,50 @@
       .flow-arrow { transform: rotate(90deg); padding: 0.15rem 0; }
     }
 
+    /* Typewriter terminal */
+    .typewriter-section {
+      padding: 2rem 0 3rem;
+      border-top: 1px solid var(--surface2);
+    }
+
+    .typewriter-block {
+      margin-top: 0;
+      padding: 1.25rem 1.5rem;
+      background: transparent;
+      font-family: ui-monospace, 'Noto Sans', monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .typewriter-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .typewriter-prompt {
+      color: var(--accent);
+      margin-right: 0.25rem;
+    }
+
+    .typewriter-text {
+      color: var(--text);
+    }
+
+    .typewriter-cursor {
+      display: inline-block;
+      width: 0.6em;
+      height: 1em;
+      background: var(--accent);
+      margin-left: 0.1em;
+      vertical-align: text-bottom;
+      animation: typewriter-blink 0.8s step-end infinite;
+    }
+
+    @keyframes typewriter-blink {
+      50% { opacity: 0; }
+    }
+
     .code-inline {
       font-family: ui-monospace, monospace;
       background: var(--surface2);
@@ -487,6 +550,14 @@
         <p class="law">"Describe the problem clearly, and half of it is already solved." — Kidlin's Law</p>
         <a class="cta" href="#installation">Install and get started →</a>
       </div>
+
+    <div class="typewriter-block" id="typewriter-block" aria-live="polite">
+      <div class="typewriter-line">
+        <span class="typewriter-prompt">&gt;</span>
+        <span class="typewriter-text" id="typewriter-text"></span>
+        <span class="typewriter-cursor" id="typewriter-cursor" aria-hidden="true"></span>
+      </div>
+    </div>
     </header>
 
     <section id="what-is" aria-labelledby="heading-what-is">
@@ -627,6 +698,43 @@ cliplin reindex --type tdr  # by type</code></pre>
     </div>
   </footer>
   <script>
+    (function() {
+      var commands = [
+        'cliplin init --ai claude-desktop',
+        'cliplin reindex',
+        'cliplin knowledge add org-commons github:org/my-repo main',
+        'cliplin knowledge list'
+      ];
+      var block = document.getElementById('typewriter-block');
+      var textEl = document.getElementById('typewriter-text');
+      var cmdIndex = 0;
+      var charIndex = 0;
+      var charDelay = 45;
+      var pauseBeforeNext = 2000;
+
+      function typeNextChar() {
+        if (cmdIndex >= commands.length) cmdIndex = 0;
+        var cmd = commands[cmdIndex];
+        if (charIndex <= cmd.length) {
+          textEl.textContent = cmd.slice(0, charIndex);
+          if (charIndex < cmd.length) {
+            charIndex++;
+            setTimeout(typeNextChar, charDelay);
+            return;
+          }
+          setTimeout(function() {
+            textEl.textContent = '';
+            charIndex = 0;
+            cmdIndex++;
+            typeNextChar();
+          }, pauseBeforeNext);
+          return;
+        }
+      }
+
+      if (block && textEl) setTimeout(typeNextChar, 700);
+    })();
+
     document.querySelectorAll('.copy-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var id = this.getAttribute('data-copy-source');
