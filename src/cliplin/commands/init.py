@@ -44,7 +44,7 @@ def init_command(
     ai: Optional[str] = typer.Option(
         None,
         "--ai",
-        help="AI tool ID (cursor, claude-desktop, etc.)",
+        help="AI tool ID (cursor, claude-desktop, gemini, etc.)",
     ),
 ) -> None:
     """Initialize a new Cliplin project in the current directory."""

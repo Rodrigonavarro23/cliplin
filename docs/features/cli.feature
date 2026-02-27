@@ -95,6 +95,30 @@ Feature: Cliplin CLI Tool
     And the CLI should initialize context store collections as specified in the context rules
     And the CLI should display a success message indicating project initialization with Claude Desktop is complete
 
+  @status:new
+  @changed:2026-02-27
+  @reason:Add Gemini CLI as supported AI host
+  Scenario: Initialize a Cliplin project with specific AI tool (Gemini CLI)
+    Given I have the Cliplin CLI tool installed
+    And I am in an empty directory or a new project directory
+    When I run `cliplin init --ai gemini`
+    Then the CLI should create configuration files in the current directory
+    And the CLI should generate configuration files adjusted for the AI tool ID "gemini"
+    And the CLI should create `.gemini/` directory structure
+    And the CLI should create `.gemini/settings.json` if it does not exist
+    And the CLI should configure `.gemini/settings.json` with Cliplin context MCP server configuration
+    And the `.gemini/settings.json` file should define the Cliplin context MCP server under `mcpServers.cliplin-context` with:
+      | Field | Description |
+      | command | Command to start the Cliplin MCP server |
+      | args | Arguments for the MCP server |
+    And the MCP server configuration should use `uv` with `run cliplin mcp` as command and args
+    And the CLI should create a `GEMINI.md` context file at the project root containing Cliplin project rules and conventions
+    And the CLI should configure `.gemini/settings.json` so that `GEMINI.md` is loaded as a context file (for example using the `context.fileName` setting)
+    And the CLI should ensure `.cliplin` is listed in `.gitignore`
+    And the CLI should validate that Gemini CLI-specific configurations are correct
+    And the CLI should initialize context store collections as specified in the context rules
+    And the CLI should display a success message indicating project initialization with Gemini CLI is complete
+
   @status:implemented
   @changed:2025-02-16
   @reason:Config file default location moved to project root
@@ -119,6 +143,7 @@ Feature: Cliplin CLI Tool
     And the CLI should verify that MCP server configuration files exist for the specified AI tool
     And if the AI tool is "cursor", the CLI should verify that `.cursor/mcp.json` exists
     And if the AI tool is "claude-desktop", the CLI should verify that `.mcp.json` exists at the project root
+    And if the AI tool is "gemini", the CLI should verify that `.gemini/settings.json` exists
     And the CLI should verify that Python version is 3.10 or higher
     And the CLI should verify that required dependencies are available
     And if any validation fails, the CLI should display clear error messages indicating what is missing or incorrect
@@ -217,7 +242,7 @@ Feature: Cliplin CLI Tool
     And I am in an empty directory or a new project directory
     When I run `cliplin init --ai invalid-tool`
     Then the CLI should display an error message indicating that the AI tool ID is not recognized
-    And the CLI should list available AI tool IDs (e.g., "cursor", "claude-desktop")
+    And the CLI should list available AI tool IDs (e.g., "cursor", "claude-desktop", "gemini")
     And the CLI should exit with a non-zero status code
     And no files should be created in the current directory
 

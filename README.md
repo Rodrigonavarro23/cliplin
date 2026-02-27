@@ -246,6 +246,7 @@ And the AI will:
 # Initialize project
 cliplin init --ai cursor              # For Cursor AI
 cliplin init --ai claude-desktop      # For Claude Desktop
+cliplin init --ai gemini              # For Gemini CLI
 
 # Validate structure
 cliplin validate
@@ -282,7 +283,16 @@ cliplin tool --list             # List all available tools
 
 - Python 3.10 or higher (Python 3.11 may have compatibility issues with the context store backend on Windows)
 - [uv](https://github.com/astral-sh/uv) (Astral UV) — recommended for installation from GitHub: `uv tool install git+https://github.com/Rodrigonavarro23/cliplin.git`
-- A compatible AI assistant (Cursor, Claude Desktop, etc.)
+- A compatible AI assistant (Cursor, Claude Desktop, Gemini CLI, etc.)
+
+## Supported AI assistants
+
+- **Cursor**: `cliplin init --ai cursor`  
+  - Creates `.cursor/mcp.json` with a `cliplin-context` MCP server (`uv run cliplin mcp`) and rules under `.cursor/rules/*.mdc`.
+- **Claude Desktop**: `cliplin init --ai claude-desktop`  
+  - Creates `.mcp.json` at project root with `cliplin-context` MCP server and rules under `.claude/rules/`, plus consolidated instructions in `.claude/instructions.md`.
+- **Gemini CLI**: `cliplin init --ai gemini`  
+  - Creates `.gemini/settings.json` with `mcpServers.cliplin-context` (`command: "uv"`, `args: ["run", "cliplin", "mcp"]`) and a `GEMINI.md` context file at project root that Gemini CLI loads as hierarchical instructional context.
 
 ### Windows-Specific Requirements
 

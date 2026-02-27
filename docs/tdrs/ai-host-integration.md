@@ -1,8 +1,8 @@
 ---
 tdr: "1.0"
 id: "ai-host-integration"
-title: "AI Host Integration (Cursor, Claude Desktop)"
-summary: "Cross-host rules: same MCP command, config generator sync, and checklist. Host-specific specs live in dedicated TS4s (cursor-integration, claude-desktop-integration)."
+title: "AI Host Integration (Cursor, Claude Desktop, Gemini CLI)"
+summary: "Cross-host rules: same MCP command, config generator sync, and checklist. Host-specific specs live in dedicated TDRs (cursor-integration, claude-desktop-integration, gemini-integration)."
 ---
 
 # rules
@@ -11,7 +11,8 @@ summary: "Cross-host rules: same MCP command, config generator sync, and checkli
 
 - **Cursor**: config `.cursor/mcp.json`; rules `.cursor/rules/*.mdc`. Quirks and paths: docs/tdrs/cursor-integration.md
 - **Claude Desktop**: config `.mcp.json` at project root; rules `.claude/rules/`; Skills support. Quirks and paths: docs/tdrs/claude-desktop-integration.md
-- Other MCP-compatible hosts may be added later; each gets its own config generator and, if needed, a dedicated TS4 (e.g. docs/tdrs/<host>-integration.md)
+- **Gemini CLI**: project settings `.gemini/settings.json` (project-level settings file); context file `GEMINI.md` loaded as hierarchical instructional context. Quirks and paths: docs/tdrs/gemini-integration.md
+- Other MCP-compatible hosts may be added later; each gets its own config generator and, if needed, a dedicated TDR (e.g. docs/tdrs/<host>-integration.md)
 
 ## MCP command must be consistent across hosts (MUST)
 

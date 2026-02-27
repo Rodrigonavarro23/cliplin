@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import yaml
 from rich.console import Console
@@ -713,6 +713,56 @@ def create_claude_desktop_mcp_config(target_dir: Path) -> None:
         json.dump(existing_config, f, indent=2, ensure_ascii=False)
 
 
+def create_gemini_cli_settings(target_dir: Path) -> None:
+    """Create or update .gemini/settings.json with Cliplin context MCP server configuration and context file settings."""
+    settings_file = target_dir / ".gemini" / "settings.json"
+    settings_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # Cliplin context MCP server (same command/args as other hosts; see ai-host-integration TDR).
+    cliplin_server_config: Dict[str, Any] = {
+        "command": "uv",
+        "args": ["run", "cliplin", "mcp"],
+    }
+
+    existing_config: Dict[str, Any] = {}
+    if settings_file.exists():
+        try:
+            with open(settings_file, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    existing_config = loaded
+        except (json.JSONDecodeError, IOError):
+            existing_config = {}
+
+    # Ensure mcpServers.cliplin-context is present and consistent.
+    mcp_servers = existing_config.get("mcpServers")
+    if not isinstance(mcp_servers, dict):
+        mcp_servers = {}
+    mcp_servers["cliplin-context"] = cliplin_server_config
+    existing_config["mcpServers"] = mcp_servers
+
+    # Ensure GEMINI.md is included as a context file, without removing existing values.
+    context_cfg = existing_config.get("context")
+    if not isinstance(context_cfg, dict):
+        context_cfg = {}
+    file_name = context_cfg.get("fileName")
+    if file_name is None:
+        context_cfg["fileName"] = ["GEMINI.md"]
+    elif isinstance(file_name, str):
+        if file_name != "GEMINI.md":
+            context_cfg["fileName"] = [file_name, "GEMINI.md"]
+    elif isinstance(file_name, list):
+        if "GEMINI.md" not in file_name:
+            file_name.append("GEMINI.md")
+        context_cfg["fileName"] = file_name
+    existing_config["context"] = context_cfg
+
+    with open(settings_file, "w", encoding="utf-8") as f:
+        json.dump(existing_config, f, indent=2, ensure_ascii=False)
+
+    console.print("  [green]✓[/green] Created/updated .gemini/settings.json")
+
+
 def get_cursor_context_content() -> str:
     """Get the content for .cursor/rules/context.mdc"""
     return """---
@@ -1251,6 +1301,41 @@ This file contains all the rules and protocols that Claude should follow when wo
 1. Copy and paste this entire file into Claude Desktop at the start of a conversation
 2. Reference this file when Claude asks about project rules
 3. Use the Cliplin MCP server to access project context (configured in `.mcp.json` at project root)
+
+---
+
+{context_content}
+
+---
+
+{feature_first_flow_content}
+
+---
+
+{feature_content}
+
+---
+
+{protocol_content}
+"""
+
+
+def get_gemini_gemini_md_content() -> str:
+    """Get the GEMINI.md content for Gemini CLI."""
+    context_content = get_cursor_context_content()
+    feature_first_flow_content = get_feature_first_flow_content()
+    feature_content = get_cursor_feature_processing_content()
+    protocol_content = get_cursor_context_protocol_loading_content()
+
+    return f"""# Cliplin Project Instructions for Gemini CLI
+
+This file contains the rules and protocols that Gemini CLI should follow when working on this Cliplin project.
+
+## How to Use This File
+
+- Run `gemini` from this project root so the CLI discovers `.gemini/settings.json` and this `GEMINI.md` as hierarchical context.
+- Ensure that `.gemini/settings.json` contains an MCP server named `cliplin-context` pointing to `uv run cliplin mcp` (managed by `cliplin init --ai gemini`).
+- Keep this file in the project so Gemini can always load the same rules and conventions when assisting on this repository.
 
 ---
 

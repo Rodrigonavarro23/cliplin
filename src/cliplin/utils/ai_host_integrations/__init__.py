@@ -10,10 +10,12 @@ from cliplin.utils.ai_host_integrations.base import (
 )
 from cliplin.utils.ai_host_integrations.claude_desktop import ClaudeDesktopIntegration
 from cliplin.utils.ai_host_integrations.cursor import CursorIntegration
+from cliplin.utils.ai_host_integrations.gemini_cli import GeminiCliIntegration
 
 # Register built-in integrations so create_ai_tool_config and validate can resolve by id
 register_integration(CursorIntegration())
 register_integration(ClaudeDesktopIntegration())
+register_integration(GeminiCliIntegration())
 
 
 def create_ai_tool_config(target_dir: Path, ai_tool: str) -> None:
