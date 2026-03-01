@@ -12,9 +12,9 @@ console = Console()
 
 
 class ClaudeDesktopIntegration:
-    """Integration handler for Claude Desktop: .mcp.json and .claude/rules/ + instructions."""
+    """Integration handler for Claude Code / Claude Desktop: .mcp.json and .claude/rules/ + instructions."""
 
-    id = "claude-desktop"
+    id = "claude-code"
     rules_dir = ".claude/rules"
     mcp_config_path = ".mcp.json"
 

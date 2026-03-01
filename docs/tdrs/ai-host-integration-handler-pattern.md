@@ -16,9 +16,9 @@ summary: "Each integration with an AI host (Cursor, Claude Desktop, etc.) is imp
 ## Handler contract (protocol)
 
 - Define a Protocol (typing.Protocol) or ABC with at least:
-  - Host identifier (id: str, e.g. "cursor", "claude-desktop").
+  - Host identifier (id: str, e.g. "cursor", "claude-code").
   - Rules directory path (rules_dir: str) and, if applicable, MCP config file path for validation (mcp_config_path: str | None).
-  - Method apply(target_dir: Path) -> None that runs all actions for that host: create directories, write MCP config, write rule files, and any extra files (e.g. instructions.md for Claude Desktop).
+  - Method apply(target_dir: Path) -> None that runs all actions for that host: create directories, write MCP config, write rule files, and any extra files (e.g. instructions.md for Claude Code).
 - Each concrete implementation of the protocol encapsulates: MCP config creation, rule file paths, and writing each file using shared content (getters in templates or the same module) as appropriate for that host.
 
 ## Integration registry (MUST)

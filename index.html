@@ -629,7 +629,7 @@
     <section id="installation" aria-labelledby="heading-installation">
       <div class="container">
         <h2 id="heading-installation">Installation and usage</h2>
-        <p class="lead">Requirements: Python 3.10+, <a href="https://github.com/astral-sh/uv" style="color: var(--accent);">uv</a> (recommended), and a compatible AI assistant (Cursor, Claude Desktop, etc.).</p>
+        <p class="lead">Requirements: Python 3.10+, <a href="https://github.com/astral-sh/uv" style="color: var(--accent);">uv</a> (recommended), and a compatible AI assistant (Cursor, Claude Code, etc.).</p>
 
         <div class="install-steps">
           <div class="install-step">
@@ -644,8 +644,8 @@
           <div class="install-step">
             <h3>2. Initialize your project</h3>
             <p>Creates the directory structure and configures the AI host.</p>
-            <pre><code>cliplin init --ai claude-desktop</code></pre>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">Cliplin supports: Cursor, Claude Desktop, and more. See the <a href="https://github.com/Rodrigonavarro23/cliplin#initialize-your-project" style="color: var(--accent);">README</a> for options.</p>
+            <pre><code>cliplin init --ai claude-code</code></pre>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Cliplin supports: Cursor, Claude Code, Gemini CLI, and more. See the <a href="https://github.com/Rodrigonavarro23/cliplin#initialize-your-project" style="color: var(--accent);">README</a> for options.</p>
             <p>This creates <code class="code-inline">cliplin.yaml</code>, <code class="code-inline">docs/features</code>, <code class="code-inline">docs/tdrs</code>, <code class="code-inline">docs/adrs</code>, <code class="code-inline">docs/ui-intent</code>, and the framework package at <code class="code-inline">.cliplin/knowledge/cliplin-framework/</code>.</p>
           </div>
 
@@ -701,7 +701,7 @@ cliplin reindex --type tdr  # by type</code></pre>
   <script>
     (function() {
       var commands = [
-        'cliplin init --ai claude-desktop',
+        'cliplin init --ai claude-code',
         'cliplin reindex',
         'cliplin knowledge add org-commons github:org/my-repo main',
         'cliplin knowledge list'

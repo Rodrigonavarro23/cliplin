@@ -16,6 +16,7 @@ from cliplin.utils.chromadb import (
 from cliplin.utils.fingerprint import get_fingerprint_store
 from cliplin.utils.ai_host_integrations import (
     create_ai_tool_config,
+    get_integration,
     get_known_ai_tool_ids,
 )
 from cliplin.utils.templates import (
@@ -44,7 +45,7 @@ def init_command(
     ai: Optional[str] = typer.Option(
         None,
         "--ai",
-        help="AI tool ID (cursor, claude-desktop, gemini, etc.)",
+        help="AI tool ID (cursor, claude-code, gemini, etc.)",
     ),
 ) -> None:
     """Initialize a new Cliplin project in the current directory."""
@@ -87,7 +88,7 @@ def init_command(
         
         # Create AI tool configuration if specified
         if ai:
-            if ai not in get_known_ai_tool_ids():
+            if get_integration(ai) is None:
                 console.print(
                     f"[bold red]Error:[/bold red] Unknown AI tool: {ai}\n"
                     f"Available tools: {', '.join(get_known_ai_tool_ids())}"

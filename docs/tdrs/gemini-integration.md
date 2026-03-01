@@ -56,7 +56,7 @@ summary: "Rules for configuring Gemini CLI as an AI host for Cliplin (cliplin in
   - The class lives under `src/cliplin/utils/ai_host_integrations/` (for example `gemini_cli.py`).
   - It implements `apply(target_dir: Path) -> None`, which creates/updates `.gemini/settings.json` and `GEMINI.md`.
 - The integration MUST be registered in the central registry so that:
-  - `get_known_ai_tool_ids()` includes `"gemini"` alongside `"cursor"` and `"claude-desktop"`.
+  - `get_known_ai_tool_ids()` includes `"gemini"` alongside `"cursor"` and `"claude-code"` (note: `"claude-desktop"` is a backward-compat alias, not a separate canonical ID).
   - `create_ai_tool_config(project_root, "gemini")` delegates to the Gemini integration handler.
 - `cliplin init --ai gemini` MUST:
   - Validate that `"gemini"` is a known AI tool id via the registry.

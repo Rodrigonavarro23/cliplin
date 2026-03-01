@@ -76,24 +76,37 @@ Feature: Cliplin CLI Tool
     And the CLI should display a success message indicating project initialization with Cursor is complete
 
   @status:implemented
-  @changed:2024-01-15
-  Scenario: Initialize a Cliplin project with specific AI tool (Claude Desktop)
+  @changed:2026-03-01
+  @reason:claude-code replaces claude-desktop as primary AI tool ID; claude-desktop kept as backward-compat alias
+  Scenario: Initialize a Cliplin project with specific AI tool (Claude Code)
     Given I have the Cliplin CLI tool installed
     And I am in an empty directory or a new project directory
-    When I run `cliplin init --ai claude-desktop`
+    When I run `cliplin init --ai claude-code`
     Then the CLI should create configuration files in the current directory
-    And the CLI should generate configuration files adjusted for the AI tool ID "claude-desktop"
+    And the CLI should generate configuration files adjusted for the AI tool ID "claude-code"
     And the CLI should create `.claude/` directory structure
     And the CLI should create `.claude/rules/` directory structure for rule files
-    And the CLI should create MCP server configuration files for Claude Desktop
+    And the CLI should create MCP server configuration files for Claude Code
     And the CLI should create `.mcp.json` at the root of the project if it does not exist
     And the CLI should configure `.mcp.json` with Cliplin MCP server configuration
     And the CLI should create `.claude/claude.md` with instructions on how to use the rules
-    And the CLI should configure the Cliplin MCP server for Claude Desktop integration
+    And the CLI should configure the Cliplin MCP server for Claude Code integration
     And the CLI should ensure `.cliplin` is listed in `.gitignore`
-    And the CLI should validate that Claude Desktop-specific configurations are correct
+    And the CLI should validate that Claude Code-specific configurations are correct
     And the CLI should initialize context store collections as specified in the context rules
-    And the CLI should display a success message indicating project initialization with Claude Desktop is complete
+    And the CLI should display a success message indicating project initialization with Claude Code is complete
+
+  @status:implemented
+  @changed:2026-03-01
+  @reason:Backward-compat alias so existing projects using --ai claude-desktop keep working
+  Scenario: Initialize a Cliplin project using the backward-compatible claude-desktop alias
+    Given I have the Cliplin CLI tool installed
+    And I am in an empty directory or a new project directory
+    When I run `cliplin init --ai claude-desktop`
+    Then the CLI should resolve "claude-desktop" as an alias for "claude-code"
+    And the CLI should produce exactly the same output as `cliplin init --ai claude-code`
+    And the CLI should create `.mcp.json` at the root of the project
+    And the CLI should create `.claude/` directory structure with rules and instructions
 
   @status:new
   @changed:2026-02-27
@@ -142,7 +155,7 @@ Feature: Cliplin CLI Tool
     And the CLI should verify that configuration file exists at project root `cliplin.yaml`
     And the CLI should verify that MCP server configuration files exist for the specified AI tool
     And if the AI tool is "cursor", the CLI should verify that `.cursor/mcp.json` exists
-    And if the AI tool is "claude-desktop", the CLI should verify that `.mcp.json` exists at the project root
+    And if the AI tool is "claude-code" (or alias "claude-desktop"), the CLI should verify that `.mcp.json` exists at the project root
     And if the AI tool is "gemini", the CLI should verify that `.gemini/settings.json` exists
     And the CLI should verify that Python version is 3.10 or higher
     And the CLI should verify that required dependencies are available
@@ -242,7 +255,7 @@ Feature: Cliplin CLI Tool
     And I am in an empty directory or a new project directory
     When I run `cliplin init --ai invalid-tool`
     Then the CLI should display an error message indicating that the AI tool ID is not recognized
-    And the CLI should list available AI tool IDs (e.g., "cursor", "claude-desktop", "gemini")
+    And the CLI should list available AI tool IDs (e.g., "cursor", "claude-code", "gemini")
     And the CLI should exit with a non-zero status code
     And no files should be created in the current directory
 

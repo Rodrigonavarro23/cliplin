@@ -2,7 +2,7 @@
 tdr: "1.0"
 id: "ai-host-integration"
 title: "AI Host Integration (Cursor, Claude Desktop, Gemini CLI)"
-summary: "Cross-host rules: same MCP command, config generator sync, and checklist. Host-specific specs live in dedicated TDRs (cursor-integration, claude-desktop-integration, gemini-integration)."
+summary: "Cross-host rules: same MCP command, config generator sync, and checklist. Host-specific specs live in dedicated TDRs (cursor-integration, claude-desktop-integration, gemini-integration). Claude integration: primary ID is 'claude-code', 'claude-desktop' is a backward-compat alias."
 ---
 
 # rules
@@ -10,7 +10,7 @@ summary: "Cross-host rules: same MCP command, config generator sync, and checkli
 ## Supported AI hosts and host-specific specs
 
 - **Cursor**: config `.cursor/mcp.json`; rules `.cursor/rules/*.mdc`. Quirks and paths: docs/tdrs/cursor-integration.md
-- **Claude Desktop**: config `.mcp.json` at project root; rules `.claude/rules/`; Skills support. Quirks and paths: docs/tdrs/claude-desktop-integration.md
+- **Claude Code** (alias: `claude-desktop`): config `.mcp.json` at project root; rules `.claude/rules/`; Skills support. Primary ID: `claude-code`. Quirks and paths: docs/tdrs/claude-desktop-integration.md
 - **Gemini CLI**: project settings `.gemini/settings.json` (project-level settings file); context file `GEMINI.md` loaded as hierarchical instructional context. Quirks and paths: docs/tdrs/gemini-integration.md
 - Other MCP-compatible hosts may be added later; each gets its own config generator and, if needed, a dedicated TDR (e.g. docs/tdrs/<host>-integration.md)
 
@@ -29,6 +29,7 @@ summary: "Cross-host rules: same MCP command, config generator sync, and checkli
 ## Checklist before merging changes to templates or MCP command
 
 - [ ] create_cursor_mcp_config and create_claude_desktop_mcp_config in templates.py both use the same command/args
+- [ ] The `claude-code` ID is the canonical ID; `claude-desktop` remains registered as an alias via `register_alias("claude-desktop", "claude-code")` in `__init__.py`
 - [ ] Command is `uv run cliplin mcp` (or documented exception)
 - [ ] Any new host has its integration class in ai_host_integrations and is listed in this TS4 (and has a host-specific TS4 if needed)
 code_refs:

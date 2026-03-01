@@ -96,7 +96,7 @@ def validate_command() -> None:
     if config_file.exists():
         console.print(f"  [green]✓[/green] Config file exists")
         ai_tool: Optional[str] = _get_ai_tool_from_config(config_file)
-        if ai_tool is not None and ai_tool in get_known_ai_tool_ids():
+        if ai_tool is not None and get_integration(ai_tool) is not None:
             integration = get_integration(ai_tool)
             mcp_path = integration.mcp_config_path if integration else None
             if mcp_path:
@@ -106,7 +106,7 @@ def validate_command() -> None:
                 else:
                     console.print(f"  [red]✗[/red] MCP config for {ai_tool!r} not found at {mcp_path}")
                     errors.append(f"Missing MCP config file for ai_tool {ai_tool!r}: {mcp_path}")
-        elif ai_tool is not None and ai_tool not in get_known_ai_tool_ids():
+        elif ai_tool is not None and get_integration(ai_tool) is None:
             console.print(f"  [yellow]⚠[/yellow]  Unknown ai_tool in config: {ai_tool!r}")
             warnings.append(f"Unknown ai_tool in config: {ai_tool!r}")
     else:

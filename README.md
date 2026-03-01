@@ -213,6 +213,18 @@ And the AI will:
 5. ✅ Respect architectural decisions in ADRs
 6. ✅ Generate code aligned with your specifications
 
+> **Tip — reinforce the feature-first flow in your prompts**
+>
+> Even when the feature-first flow is explicitly defined in the Cliplin rules loaded by your AI, assistants can still skip updating specs and jump straight to code — especially on quick or familiar requests. This is a known AI behavior, not a Cliplin limitation.
+>
+> When it matters, add a short reminder to your prompt:
+>
+> - _"Follow the feature-first flow"_
+> - _"Update the feature file first, then implement"_
+> - _"Check and update the spec before touching any code"_
+>
+> This works with any AI (Claude, Cursor, Gemini, etc.) and keeps specs in sync with implementation.
+
 ---
 
 ## Benefits of Cliplin
@@ -245,7 +257,7 @@ And the AI will:
 ```bash
 # Initialize project
 cliplin init --ai cursor              # For Cursor AI
-cliplin init --ai claude-desktop      # For Claude Desktop
+cliplin init --ai claude-code         # For Claude Code (also: --ai claude-desktop)
 cliplin init --ai gemini              # For Gemini CLI
 
 # Validate structure
@@ -283,15 +295,15 @@ cliplin tool --list             # List all available tools
 
 - Python 3.10 or higher (Python 3.11 may have compatibility issues with the context store backend on Windows)
 - [uv](https://github.com/astral-sh/uv) (Astral UV) — recommended for installation from GitHub: `uv tool install git+https://github.com/Rodrigonavarro23/cliplin.git`
-- A compatible AI assistant (Cursor, Claude Desktop, Gemini CLI, etc.)
+- A compatible AI assistant (Cursor, Claude Code, Gemini CLI, etc.)
 
 ## Supported AI assistants
 
-- **Cursor**: `cliplin init --ai cursor`  
+- **Cursor**: `cliplin init --ai cursor`
   - Creates `.cursor/mcp.json` with a `cliplin-context` MCP server (`uv run cliplin mcp`) and rules under `.cursor/rules/*.mdc`.
-- **Claude Desktop**: `cliplin init --ai claude-desktop`  
+- **Claude Code**: `cliplin init --ai claude-code` (alias: `--ai claude-desktop`)
   - Creates `.mcp.json` at project root with `cliplin-context` MCP server and rules under `.claude/rules/`, plus consolidated instructions in `.claude/instructions.md`.
-- **Gemini CLI**: `cliplin init --ai gemini`  
+- **Gemini CLI**: `cliplin init --ai gemini`
   - Creates `.gemini/settings.json` with `mcpServers.cliplin-context` (`command: "uv"`, `args: ["run", "cliplin", "mcp"]`) and a `GEMINI.md` context file at project root that Gemini CLI loads as hierarchical instructional context.
 
 ### Windows-Specific Requirements

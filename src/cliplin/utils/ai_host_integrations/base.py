@@ -6,11 +6,11 @@ from typing import Dict, List, Optional, Protocol, runtime_checkable
 
 @runtime_checkable
 class AiHostIntegration(Protocol):
-    """Contract for an AI host integration (Cursor, Claude Desktop, etc.)."""
+    """Contract for an AI host integration (Cursor, Claude Code, etc.)."""
 
     @property
     def id(self) -> str:
-        """Unique identifier for this host (e.g. 'cursor', 'claude-desktop')."""
+        """Unique identifier for this host (e.g. 'cursor', 'claude-code')."""
         ...
 
     @property
@@ -29,6 +29,8 @@ class AiHostIntegration(Protocol):
 
 
 _REGISTRY: Dict[str, AiHostIntegration] = {}
+# Maps deprecated/alias ids to canonical ids (e.g. "claude-desktop" -> "claude-code")
+_ALIASES: Dict[str, str] = {}
 
 
 def register_integration(integration: AiHostIntegration) -> None:
@@ -36,11 +38,20 @@ def register_integration(integration: AiHostIntegration) -> None:
     _REGISTRY[integration.id] = integration
 
 
+def register_alias(alias: str, canonical_id: str) -> None:
+    """Register a backward-compatible alias that resolves to an existing canonical id."""
+    _ALIASES[alias] = canonical_id
+
+
 def get_known_ai_tool_ids() -> List[str]:
-    """Return the list of known AI tool ids (for init/validate and error messages)."""
+    """Return the list of known (canonical) AI tool ids for init/validate and error messages.
+
+    Aliases are not included; use get_integration() to resolve them transparently.
+    """
     return list(_REGISTRY.keys())
 
 
 def get_integration(ai_tool: str) -> Optional[AiHostIntegration]:
-    """Return the integration for the given ai_tool id, or None if unknown."""
-    return _REGISTRY.get(ai_tool)
+    """Return the integration for the given ai_tool id or alias, or None if unknown."""
+    canonical = _ALIASES.get(ai_tool, ai_tool)
+    return _REGISTRY.get(canonical)

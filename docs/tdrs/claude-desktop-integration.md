@@ -1,26 +1,33 @@
 ---
 tdr: "1.0"
 id: "claude-desktop-integration"
-title: "Claude Desktop Integration"
-summary: "Claude Desktop-specific config, rules, and Skills so that Cliplin templates and MCP behavior work correctly in Claude Desktop."
+title: "Claude Code / Claude Desktop Integration"
+summary: "Claude Code-specific config, rules, and Skills so that Cliplin templates and MCP behavior work correctly. Primary AI tool ID is 'claude-code'; 'claude-desktop' is a backward-compatible alias."
 ---
 
 # rules
 
-## Config and paths (Claude Desktop-only)
+## AI tool ID: claude-code (primary) and claude-desktop (alias)
+
+- The canonical AI tool ID for this integration is **`claude-code`** (e.g. `cliplin init --ai claude-code`)
+- **`claude-desktop`** is registered as a backward-compatible alias that resolves to `claude-code`; it produces identical output
+- In `get_known_ai_tool_ids()` only `"claude-code"` appears; `get_integration("claude-desktop")` transparently returns the same integration via the alias registry in `base.py`
+- All documentation, help text, and user-facing content MUST reference `claude-code` as the primary ID; `claude-desktop` SHOULD be mentioned only as a deprecated alias for backward compatibility
+
+## Config and paths (Claude Code-only)
 
 - **MCP config**: `.mcp.json` at project root (not inside .claude); key `mcpServers["cliplin-context"]`
 - **Rules**: `.claude/rules/` — e.g. context.md, feature-first-flow.md, feature-processing.md, context-protocol-loading.md
 - **Instructions**: `.claude/instructions.md` (consolidated rules); `.claude/claude.md` (directory README for users)
 - **Template generator**: `create_claude_desktop_mcp_config(target_dir)` in `src/cliplin/utils/templates.py` writes `.mcp.json` at project root
-- Init also creates `.claude/rules/*.md`, `.claude/instructions.md`, and `.claude/claude.md` when ai_tool is claude-desktop
+- Init creates `.claude/rules/*.md`, `.claude/instructions.md`, and `.claude/claude.md` when ai_tool is `claude-code` (or alias `claude-desktop`)
 
-## Claude Desktop Skills (MUST document, MAY support in templates)
+## Claude Skills (MUST document, MAY support in templates)
 
-- Claude Desktop supports **Skills** (extensions): a zip of project-specific rules/instructions that users can install via Settings > Extensions > Extension Developer > Install Extension
+- Claude supports **Skills** (extensions): a zip of project-specific rules/instructions that users can install via Settings > Extensions > Extension Developer > Install Extension
 - For Cliplin, a Skill can be created by zipping the `.claude` directory; the MCP config lives at project root (`.mcp.json`), so the zip contains rules and instructions, not the MCP config (user or project must have .mcp.json at the right place for MCP to work)
-- When documenting or generating "how to use with Claude Desktop", mention: (1) load instructions.md at conversation start, (2) optional: create a Skill from the `.claude` directory for automatic rule application
-- Any new Claude-specific capability (e.g. Skill packaging, extra rule files) must be documented in this TS4 and kept in sync with what `cliplin init --ai-tool claude-desktop` produces
+- When documenting or generating "how to use with Claude Code", mention: (1) load instructions.md at conversation start, (2) optional: create a Skill from the `.claude` directory for automatic rule application
+- Any new Claude-specific capability (e.g. Skill packaging, extra rule files) must be documented in this TDR and kept in sync with what `cliplin init --ai claude-code` produces
 
 ## Knowledge packages — Skills from .cliplin/knowledge (MUST when supported)
 
