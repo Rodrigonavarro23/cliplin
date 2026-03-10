@@ -1,3 +1,13 @@
+@constraints
+# governed_by:
+#   - docs/tdrs/cliplin-cli-stack.md
+#   - docs/tdrs/cliplin-flow.md
+#   - docs/adrs/000-cliplin-framework.md
+# conflicts: []
+# gaps:
+#   - "No TDR defining the structure or format of the generated prompt (Markdown? plain text? sections?)"
+#   - "No spec for how the generated prompt should instruct the AI to load and use Cliplin context collections"
+#   - "No spec for output destination options (stdout only, or also --output file?)"
 @status:new
 Feature: Generate ADR Technical Documentation Prompt from Repository
   As a developer
@@ -7,7 +17,7 @@ Feature: Generate ADR Technical Documentation Prompt from Repository
   Background:
     Given I have the Cliplin CLI tool installed
     And I have initialized a Cliplin project using `cliplin init --ai cursor`
-    And the ChromaDB database exists at `.cliplin/data/context/chroma.sqlite3`
+    And the project context store is initialized at `.cliplin/data/context`
 
   @status:new
   Scenario: Generate ADR prompt from local repository path
@@ -21,7 +31,7 @@ Feature: Generate ADR Technical Documentation Prompt from Repository
       | Repository Information | Path or URL to analyze |
       | Analysis Steps | Step-by-step instructions to analyze the repository |
       | ADR Structure | Required ADR sections and format |
-      | Cliplin Context | Instructions to load context from ChromaDB and index the result |
+      | Cliplin Context | Instructions to load context from the project context store and index the result |
     And the CLI should output the prompt to stdout
     And the CLI should exit with a zero status code
 

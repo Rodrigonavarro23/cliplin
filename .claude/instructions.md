@@ -153,10 +153,27 @@ When a user asks to implement a feature or work with `.feature` files:
      * Run `cliplin reindex --dry-run` to check if context files are up to date
      * If context files are outdated, ask user for confirmation before reindexing
      * Only proceed with feature work after ensuring context is current and loaded
+   - **Write @constraints block (MANDATORY planning gate)**: After loading context and before any analysis or implementation, write the `@constraints` block at the top of the feature file (before `Feature:`). Use the following format:
+     ```
+     @constraints
+     # governed_by:
+     #   - docs/tdrs/<relevant-tdr>.md
+     #   - docs/adrs/<relevant-adr>.md
+     # conflicts:
+     #   - "<description of any contradiction between governing docs>"
+     # gaps:
+     #   - "<description of any assumed behavior not explicitly specified>"
+     ```
+     * `governed_by`: list every TDR, ADR, or business doc loaded from the context store that actively constrains this feature
+     * `conflicts`: list any contradictions detected between two or more governing documents
+     * `gaps`: list any behaviors assumed but not explicitly covered by any governing document
+     * If a scenario has constraints different from the feature-level ones, add a scenario-level `@constraints` block immediately before that `Scenario:` line (same format, indented to scenario level)
+     * Do not start implementation until the `@constraints` block is written and visible in the feature file
    - **Generate implementation prompt**: Ask the user if they want you to run `cliplin feature apply <feature-filepath>` to generate a structured implementation prompt that includes the feature content and implementation instructions. If the user confirms, execute the command and use the generated prompt as part of your implementation workflow
 
 1. **Feature Analysis Phase**:
    - Read and analyze the `.feature` file from the `docs/features/` directory
+   - **Read existing `@constraints` block if present**: If the feature file already has a `@constraints` block, extract and use it as the starting point — do not ignore it or overwrite it without reviewing its content first. Update it if new conflicts or gaps are discovered during analysis.
    - Identify all scenarios (Given-When-Then steps)
    - **Analyze scenario status tags**: For each scenario, identify its current status based on tags:
      * `@status:new` - New scenario that needs implementation
@@ -268,6 +285,7 @@ When a user asks to modify an existing feature:
      * Run `cliplin reindex --dry-run` to check if context files are up to date
      * If context files are outdated, ask user for confirmation before reindexing
      * Only proceed with feature modification after ensuring context is current and loaded
+   - **Update @constraints block**: After loading context, review the existing `@constraints` block (if present) and update it to reflect the current governing docs, any new conflicts, and any new or resolved gaps. If no block exists, write one before starting modification analysis.
    - **Generate implementation prompt**: Ask the user if they want you to run `cliplin feature apply <feature-filepath>` to generate a structured implementation prompt that includes the feature content and implementation instructions. If the user confirms, execute the command and use the generated prompt as part of your modification workflow
 
 1. **Impact Analysis**:
@@ -339,6 +357,16 @@ Scenario: User login with OAuth
 - **Never modify** scenarios tagged with `@status:deprecated`
 - Always update `@changed` and `@status` tags when modifying scenarios
 - Use `@reason` tag to document why changes were made
+
+### @constraints Block Reference
+
+The `@constraints` tag and its associated YAML comments are a feature-level or scenario-level planning artifact. They record the governing documents, conflicts, and gaps identified during context loading — before implementation begins.
+
+- **Feature-level**: place `@constraints` before `Feature:` with YAML comment lines (`# key: value`)
+- **Scenario-level**: place `@constraints` immediately before the `Scenario:` line (indented), only when that scenario has constraints different from the feature-level ones
+- **Fields**: `governed_by` (list of file paths), `conflicts` (list of strings), `gaps` (list of strings)
+- **Format**: valid Gherkin — BDD test runners ignore it; the AI reads it as structured context
+- See docs/tdrs/feature-constraints-format.md for the full specification
 
 
 ---

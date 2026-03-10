@@ -1,3 +1,12 @@
+@constraints
+# governed_by:
+#   - docs/tdrs/cliplin-cli-stack.md
+#   - docs/tdrs/system-modules.md
+# conflicts: []
+# gaps:
+#   - "No spec for webview library selection or minimum version requirement"
+#   - "No spec for cross-platform webview behavior differences (macOS vs Windows vs Linux)"
+#   - "No spec for what happens when the webview opens but the HTML file fails to load internally"
 Feature: Tool Command
   As a developer
   I want to open tools from the CLI

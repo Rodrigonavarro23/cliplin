@@ -1,3 +1,16 @@
+@constraints
+# governed_by:
+#   - docs/tdrs/knowledge-packages.md
+#   - docs/tdrs/knowledge-reindex-context.md
+#   - docs/tdrs/system-modules.md
+#   - docs/tdrs/chromadb-library.md
+#   - docs/adrs/005-knowledge-packages.md
+#   - docs/tdrs/feature-template-mapping.md
+#   - docs/tdrs/cross-references-on-evolution.md
+# conflicts: []
+# gaps:
+#   - "No spec for conflict resolution in context store when install --force re-adds documents that already exist with different content"
+#   - "No spec for partial failure behavior when git sparse checkout fails mid-operation (rollback? partial state?)"
 Feature: Cliplin Knowledge Package Manager
   As a developer
   I want to manage knowledge packages (ADRs, TS4, business, rules, skills) via the Cliplin CLI

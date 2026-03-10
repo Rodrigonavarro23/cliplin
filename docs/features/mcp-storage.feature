@@ -1,3 +1,15 @@
+@constraints
+# governed_by:
+#   - docs/tdrs/chromadb-library.md
+#   - docs/tdrs/system-modules.md
+#   - docs/tdrs/low-coupling-protocols.md
+#   - docs/adrs/002-chromadb-rag-context-base.md
+#   - docs/adrs/003-incremental-context-reindexing.md
+#   - docs/adrs/004-mcp-server-instructions.md
+# conflicts: []
+# gaps:
+#   - "No spec for concurrent access behavior when multiple MCP clients modify the same collection simultaneously"
+#   - "No spec for MCP authentication or authorization (currently open to any MCP client with access to the server)"
 Feature: Cliplin Storage MCP
   As an AI tool or developer
   I want Cliplin to expose a storage MCP server

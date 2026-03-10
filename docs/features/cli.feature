@@ -1,3 +1,18 @@
+@constraints
+# governed_by:
+#   - docs/tdrs/cliplin-cli-stack.md
+#   - docs/tdrs/ai-host-integration.md
+#   - docs/tdrs/ai-host-integration-handler-pattern.md
+#   - docs/tdrs/cursor-integration.md
+#   - docs/tdrs/claude-desktop-integration.md
+#   - docs/tdrs/gemini-integration.md
+#   - docs/tdrs/system-modules.md
+#   - docs/tdrs/feature-template-mapping.md
+#   - docs/adrs/000-cliplin-framework.md
+# conflicts: []
+# gaps:
+#   - "No spec for cliplin init behavior when the project already has a different ai_tool configured in cliplin.yaml"
+#   - "No spec for idempotency guarantees: running cliplin init twice should be safe but this is not explicitly specified"
 Feature: Cliplin CLI Tool
   As a developer
   I want to install and use the Cliplin CLI tool

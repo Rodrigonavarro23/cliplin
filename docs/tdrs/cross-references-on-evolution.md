@@ -39,6 +39,7 @@ summary: "When creating or evolving a feature or solution, search the project fo
 - [ ] Searched docs/tdrs/ for specs that reference the same contract or naming; updated if needed.
 - [ ] **Feature ↔ template**: If the modified feature has a template reflection (docs/tdrs/feature-template-mapping.md), verified and updated src/cliplin/utils/templates.py so generated content matches the feature spec.
 - [ ] If templates or generated rules describe the same capability (e.g. MCP, context store), searched src/cliplin/utils/templates.py, src/cliplin/utils/ai_host_integrations/, and .cursor/rules (and .claude output) and updated so they stay in sync with features and docs.
+- [ ] **`@constraints` blocks**: If a TDR or ADR that is referenced in `governed_by` of any feature's `@constraints` block changed, updated the affected blocks (add new doc to governed_by, remove resolved gaps, note new conflicts if any).
 - [ ] Reindexed any modified context files (e.g. cliplin reindex) so the context store index stays current.
 - [ ] If changing knowledge package format (cliplin.yaml knowledge section), layout (.cliplin/knowledge/), or reindex rules for packages: updated docs/adrs/005-knowledge-packages.md, docs/tdrs/knowledge-packages.md, docs/tdrs/knowledge-reindex-context.md, docs/features/knowledge.feature, and docs/tdrs/system-modules.md (and docs/tdrs/claude-desktop-integration.md if skills behavior changes).
 code_refs:
