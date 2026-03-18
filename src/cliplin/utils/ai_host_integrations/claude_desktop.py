@@ -7,6 +7,7 @@ from pathlib import Path
 from rich.console import Console
 
 from cliplin.utils import templates
+from cliplin.utils.templates import FRAMEWORK_PACKAGE_DIR
 
 console = Console()
 
@@ -60,6 +61,9 @@ class ClaudeDesktopIntegration:
             templates.get_claude_desktop_claude_md_content(), encoding="utf-8"
         )
         console.print(f"  [green]✓[/green] Created {claude_md_path}")
+
+        framework_base = target_dir / ".cliplin" / "knowledge" / FRAMEWORK_PACKAGE_DIR
+        self.link_knowledge_skills(target_dir, framework_base)
 
     def link_knowledge_skills(self, project_root: Path, package_path: Path) -> None:
         """Create hard links from skill folders (those containing SKILL.md) to .claude/skills/ so Claude sees them.
