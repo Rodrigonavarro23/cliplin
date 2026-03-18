@@ -5,6 +5,7 @@
 #   - docs/tdrs/ai-host-integration.md
 #   - docs/tdrs/ai-host-integration-handler-pattern.md
 #   - docs/tdrs/claude-desktop-integration.md
+#   - docs/tdrs/gemini-integration.md
 #   - docs/tdrs/feature-template-mapping.md
 #   - docs/tdrs/system-modules.md
 #   - docs/tdrs/cliplin-cli-stack.md
@@ -14,12 +15,12 @@
 #   - "No scenario tests scenario-level @constraints block aggregation specifically (TDR says include them but no dedicated test)"
 #   - "No scenario tests what happens when a @constraints block is malformed (unparseable YAML comments) — expected behavior is skip-and-continue or emit a warning field"
 #   - "No scenario tests that framework files (.cliplin/knowledge/cliplin-framework/**) are excluded from dead_documentation"
-#   - "No scenario tests that init with --ai gemini completes without error when no skill linking is performed"
 # escalation_triggers:
 #   - "If the call site for link_knowledge_skills(framework_package) is ambiguous during implementation (create_framework_knowledge_package cannot know the AI host), stop and ask: confirm the call goes in each integration handler's apply() method after create_framework_knowledge_package"
 #   - "If the context_score formula produces a negative number (more deductions than 100 points available), stop and ask: confirm the minimum is clamped at 0"
 #   - "If hard-linking the skill from the framework package fails at init time (OSError, cross-filesystem), stop and ask: should init warn and continue, or fail with an error?"
 #   - "If the implementer finds that create_framework_knowledge_package is called before the integration apply() in the init flow (wrong order), stop and ask: confirm init order and adjust call site accordingly"
+#   - "If hard-linking .gemini/skills/cliplin-context-audit/SKILL.md fails at init time (OSError, cross-filesystem), stop and ask: should init warn and continue or fail? (expected: warn and continue, consistent with other hosts)"
 Feature: cliplin-context-audit Built-in Skill
   As a developer using Cliplin
   I want a built-in audit skill that analyzes my project's context health
@@ -72,14 +73,14 @@ Feature: cliplin-context-audit Built-in Skill
 
   @status:implemented
   @changed:2026-03-18
-  Scenario: Skill is not linked when AI host does not support skills
+  @reason:Gemini CLI now supports skill linking via .gemini/skills/; updated to reflect that GeminiCliIntegration.apply() calls link_knowledge_skills
+  Scenario: Skill is linked to Gemini skills directory on init with --ai gemini
     Given I have the Cliplin CLI tool installed
     And I am in an empty directory
     When I run `cliplin init --ai gemini`
     Then the CLI should create the skill at `.cliplin/knowledge/cliplin-framework/skills/cliplin-context-audit/SKILL.md`
-    And no `.gemini/skills/` directory should be created
-    And no skill link should be created for the gemini host
-    And the CLI should complete successfully without error
+    And the CLI should create a hard link at `.gemini/skills/cliplin-context-audit/SKILL.md` pointing to the skill source
+    And the `.gemini/skills/cliplin-context-audit/` directory should exist
 
   @status:implemented
   @changed:2026-03-18
@@ -158,13 +159,16 @@ Feature: cliplin-context-audit Built-in Skill
 
   @status:implemented
   @changed:2026-03-18
+  @reason:dead_documentation now excludes .feature files; only .md and .ts4 files from docs/adrs/, docs/tdrs/, and docs/business/ are candidates
   Scenario: Audit skill identifies orphaned documentation as dead_documentation
     Given I have a Cliplin project with TDR files in `docs/tdrs/`
     And `docs/tdrs/orphaned-tdr.md` is not referenced in any `governed_by` list in any feature file
     And `docs/tdrs/active-tdr.md` is referenced in at least one `governed_by` list
+    And there are `.feature` files in `docs/features/` that are not referenced in any `governed_by` list
     When I invoke the `cliplin-context-audit` skill
     Then the JSON `dead_documentation` array should contain `docs/tdrs/orphaned-tdr.md`
     And `docs/tdrs/active-tdr.md` should NOT appear in `dead_documentation`
+    And no `.feature` file from `docs/features/` should appear in `dead_documentation`
 
   @status:implemented
   @changed:2026-03-18

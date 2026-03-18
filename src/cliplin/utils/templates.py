@@ -663,8 +663,9 @@ Analyse the context health of a Cliplin project and output a single JSON object 
    Deduplicate.
 
    ### dead_documentation
-   List every `.md`, `.ts4`, and `.feature` file found anywhere under `docs/` that is **not** referenced by any `governed_by` entry in any `@constraints` block across the whole project, **and** is not a framework file (i.e. not under `.cliplin/knowledge/cliplin-framework/`).
+   List every `.md` and `.ts4` file found under `docs/adrs/`, `docs/tdrs/`, and `docs/business/` that is **not** referenced by any `governed_by` entry in any `@constraints` block across the whole project.
    A file is "referenced" if its relative path from the project root appears verbatim in at least one `governed_by` list.
+   **Do NOT include `.feature` files** in `dead_documentation` — feature files are the source of truth and are never orphaned documentation.
 
    ### context_score
    Start at **100**.  Apply the following deductions (apply each category cap before summing):
