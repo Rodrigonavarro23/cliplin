@@ -88,7 +88,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     And the output should include context signals inferred beyond code (README, CHANGELOG, git history)
     And the skill should ask "Proceed to Phase 2?" before starting guided drafting
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill proposes spec drafts one by one in Phase 2 and waits for confirmation
     Given Phase 1 produced 3 findings for module `payments`
     When the skill executes Phase 2
@@ -97,7 +98,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     And after each approved finding the skill should instruct the user to run `cliplin reindex <path>`
     And after all findings are resolved the skill should ask "Move to next module?"
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill writes and updates the tracking file during execution
     Given I invoke the `cliplin-reverse-engineer` skill on a project with 2 modules
     When the skill starts processing module 1
@@ -105,7 +107,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     And after completing Phase 1 of module 1, `current_phase` should be updated to `2`
     And after completing module 1, `modules_completed` should include `module1` and `modules_pending` should include `module2`
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill offers to resume when a progress file is found on re-invocation
     Given `.cliplin/.re-progress.yaml` exists with `current_module: payments` and `current_phase: 2`
     When I invoke the `cliplin-reverse-engineer` skill again
