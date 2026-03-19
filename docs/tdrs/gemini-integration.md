@@ -70,6 +70,15 @@ summary: "Rules for configuring Gemini CLI as an AI host for Cliplin (cliplin in
   - Missing `.gemini/settings.json` MUST be reported as an error: "Missing MCP config file for ai_tool 'gemini': .gemini/settings.json".
 - The validation logic MUST remain host-agnostic: it uses `get_integration(ai_tool)` and reads `mcp_config_path`; it does not special-case `"gemini"` by name.
 
+## Skills support for Gemini CLI (MUST)
+
+- `cliplin init --ai gemini` MUST link framework skills after `create_framework_knowledge_package` completes.
+- The `GeminiCliIntegration` handler MUST call `link_knowledge_skills(project_root, framework_base)` in its `apply()` method, so the built-in audit skill appears at `.gemini/skills/cliplin-context-audit/SKILL.md`.
+- `framework_base` is `target_dir / ".cliplin" / "knowledge" / FRAMEWORK_PACKAGE_DIR`.
+- The `.gemini/skills/` directory and its contents are created as hard links, consistent with how Claude Code and Cursor handle skill linking (see docs/tdrs/context-audit-skill.md and docs/tdrs/claude-desktop-integration.md).
+- Re-running `cliplin init --ai gemini` MUST refresh the link (existing link is removed and recreated), because `link_knowledge_skills` already handles this via `shutil.rmtree` on the destination before re-linking.
+- If the hard-link creation fails at init time (e.g. `OSError`, cross-filesystem): **warn and continue** — init MUST NOT fail because of a skill link failure. Log a warning to stderr and proceed.
+
 ## Consistency with Gemini CLI configuration model
 
 - The structure of `.gemini/settings.json` MUST respect the Gemini CLI configuration model ([Gemini CLI configuration](https://geminicli.com/docs/reference/configuration/)):
@@ -81,8 +90,11 @@ summary: "Rules for configuring Gemini CLI as an AI host for Cliplin (cliplin in
 
 code_refs:
   - "docs/features/cli.feature"
+  - "docs/features/context-audit.feature"
   - "docs/tdrs/ai-host-integration.md"
   - "docs/tdrs/ai-host-integration-handler-pattern.md"
+  - "docs/tdrs/context-audit-skill.md"
+  - "docs/tdrs/claude-desktop-integration.md"
   - "src/cliplin/utils/ai_host_integrations/gemini_cli.py"
   - "src/cliplin/utils/templates.py"
 
