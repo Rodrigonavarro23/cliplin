@@ -145,7 +145,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     Then the skill should instruct the AI to delete `.cliplin/.re-progress.yaml`
     And the progress file should no longer exist
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill warns and proceeds fresh when progress file is malformed
     Given `.cliplin/.re-progress.yaml` exists but contains invalid YAML
     When I invoke the `cliplin-reverse-engineer` skill
@@ -154,7 +155,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     And the skill should proceed as if no progress file exists (fresh scan)
     And when the first module starts processing, the skill should overwrite the file with valid YAML
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill lists ambiguous matches when module targeting is ambiguous
     Given I have a project with modules `src/auth` and `src/oauth`
     And a progress file exists listing both modules
@@ -163,14 +165,16 @@ Feature: cliplin-reverse-engineer Built-in Skill
     And the skill should list both matching options and ask the user to choose
     And the skill should NOT proceed to Phase 1 until the user makes an explicit selection
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill informs the user and exits when the project is completely empty
     Given I have a project with no source files, no README, no manifests, and no docs
     When I invoke the `cliplin-reverse-engineer` skill
     Then the skill should inform the user that the project appears to be empty and there is nothing to analyze
     And the skill should exit without creating a progress file
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill scans from project root when no conventional source directories exist
     Given I have a project with no `src/`, `lib/`, `app/`, `pkg/`, `internal/`, or `cmd/` directories
     When I invoke the `cliplin-reverse-engineer` skill
@@ -178,7 +182,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     And the skill should exclude hidden directories, `vendor/`, `node_modules/`, `dist/`, `build/`
     And the skill should treat the project as a single module named after the project root
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill handles resume option M to jump to a specific module
     Given `.cliplin/.re-progress.yaml` exists with modules `auth` (completed) and `payments` (pending)
     And `notifications` is also listed as pending
@@ -189,7 +194,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     Then the skill should jump directly to Phase 1 for `notifications`
     And the skill should NOT reprocess `auth` or start `payments` first
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill rewrites tracking file with full module list when continuing after targeted run
     Given I ran the skill targeting `src/payments` and the progress file has `modules_total: 1`
     When the skill asks "Do you want to continue with the full project scan?" and I confirm
