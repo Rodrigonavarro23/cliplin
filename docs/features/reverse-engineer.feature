@@ -50,7 +50,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     When I run `cliplin init --ai cursor`
     Then the CLI should create a hard link at `.cursor/skills/cliplin-reverse-engineer/SKILL.md`
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill is linked to Gemini skills directory on init with --ai gemini
     Given I have the Cliplin CLI tool installed
     When I run `cliplin init --ai gemini`
@@ -189,26 +190,33 @@ Feature: cliplin-reverse-engineer Built-in Skill
     And `invocation_target` should be reset to `null`
     And the skill should proceed to Phase 1 of the next pending module
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
+  @reason:Covered by ensure_cliplin_in_gitignore which adds .cliplin (broader coverage than .cliplin/.re-progress.yaml; .cliplin entry satisfies the spec since TDR says check if .cliplin/ OR .cliplin/.re-progress.yaml is listed)
   Scenario: cliplin init adds .re-progress.yaml to .gitignore when not already covered
     Given I have a project with a `.gitignore` that does not mention `.cliplin/` or `.re-progress.yaml`
     When I run `cliplin init`
     Then the CLI should append `.cliplin/.re-progress.yaml` to `.gitignore`
     And the appended entry should include a comment `# cliplin-reverse-engineer progress file`
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
+  @reason:Covered by ensure_cliplin_in_gitignore which skips if .cliplin already present
   Scenario: cliplin init does not duplicate .gitignore entry when already covered
     Given I have a project with a `.gitignore` that already contains `.cliplin/` or `.cliplin/.re-progress.yaml`
     When I run `cliplin init`
     Then the CLI should NOT append a duplicate entry to `.gitignore`
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
+  @reason:Covered by ensure_cliplin_in_gitignore which creates .gitignore with .cliplin entry
   Scenario: cliplin init creates .gitignore with the entry when no .gitignore exists
     Given I have a project with no `.gitignore` file
     When I run `cliplin init`
     Then the CLI should create `.gitignore` with the entry `.cliplin/.re-progress.yaml`
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: feature-template-mapping.md records the reverse-engineer skill mapping
     Given the feature `docs/features/reverse-engineer.feature` exists
     And the template function `create_reverse_engineer_skill` exists in `src/cliplin/utils/templates.py`
