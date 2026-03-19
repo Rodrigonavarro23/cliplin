@@ -118,7 +118,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     And if the user chooses [C], the skill should reload the MCP context using `context_references` queries
     And if the user chooses [R], the skill should delete the progress file and start fresh
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill targets a specific module when invoked with a module name
     Given I have a project with modules `auth`, `payments`, `notifications`
     And a progress file exists listing all three modules
@@ -127,7 +128,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     And the skill should NOT scan or present findings for `auth` or `notifications`
     And after completing `payments`, the skill should ask if the user wants to continue the full scan
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill performs targeted scan when invoked on a module with no progress file
     Given no `.cliplin/.re-progress.yaml` exists
     When I invoke the `cliplin-reverse-engineer` skill targeting `src/auth`
@@ -135,7 +137,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     And the skill should create `.cliplin/.re-progress.yaml` with `modules_total: 1` and `invocation_target: auth`
     And the skill should proceed directly to Phase 1 for `auth` without showing a process plan
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill deletes the tracking file when all modules are complete
     Given all modules have been processed and `modules_pending` is empty
     When the skill completes the last module
