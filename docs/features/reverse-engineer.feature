@@ -57,7 +57,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     When I run `cliplin init --ai gemini`
     Then the CLI should create a hard link at `.gemini/skills/cliplin-reverse-engineer/SKILL.md`
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill detects top-level modules from source tree
     Given I have a project with source directories `src/payments`, `src/auth`, `src/notifications`
     When I invoke the `cliplin-reverse-engineer` skill
@@ -65,7 +66,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     And each module should have an `inferred_domain` derived from file names and README content
     And modules with existing feature files referencing them should be marked `has_existing_specs: true`
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill presents a process plan and waits for confirmation before proceeding
     Given I have a project with 3 detected top-level modules
     And no `.cliplin/.re-progress.yaml` exists
@@ -74,7 +76,8 @@ Feature: cliplin-reverse-engineer Built-in Skill
     And the skill should ask "Shall I start with module 1?" before proceeding
     And the skill should NOT start Phase 1 until the user confirms
 
-  @status:new
+  @status:implemented
+  @changed:2026-03-19
   Scenario: Skill produces a findings report (Phase 1) for a module
     Given I invoke the `cliplin-reverse-engineer` skill and confirm to start with module `payments`
     When the skill executes Phase 1 for `payments`
