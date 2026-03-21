@@ -64,8 +64,28 @@ alwaysApply: true
    - Query `features` for related features and dependencies
    - Query `uisi` if UI/UX work is involved
 
+4.5. **Technical Intent Discovery** (mandatory for implementation and coding tasks):
+   After loading domain-specific context, infer the technical operations this implementation will require. For each identified operation, query `technical-decision-records` to discover rules that govern that specific technical pattern — even if those TDRs are not mentioned in any feature file.
+
+   **Common technical operations to check:**
+   - Reading/writing files → query `"file operations encoding"`
+   - Reading environment variables or config → query `"environment variables configuration"`
+   - HTTP calls to external APIs → query `"HTTP client library"`
+   - Database interactions → query `"database access patterns"`
+   - Cryptography or password hashing → query `"cryptography hashing library"`
+   - Spawning subprocesses → query `"subprocess execution"`
+   - Parsing/serializing data formats (YAML, JSON, CSV) → query `"YAML JSON parsing"`
+   - CLI argument parsing → query `"CLI argument parser"`
+
+   For each identified operation, run:
+   `context_query_documents("technical-decision-records", ["<technical operation>"])`
+
+   Add any relevant TDRs found to the `governed_by` list in the `@constraints` block.
+   These TDRs are real constraints for this feature and SHOULD appear in `governed_by`.
+
 5. **Never Proceed Without Context**: Do NOT start any task until you have:
    - Queried and loaded relevant context from the context store collections (via Cliplin MCP)
+   - Completed Technical Intent Discovery (step 4.5) for implementation tasks
    - Reviewed the loaded context to understand constraints and requirements
    - Verified that context is current (check for outdated files if needed)
 
@@ -85,7 +105,9 @@ alwaysApply: true
 1. Query 'features' collection: "payment processing scenarios"
 2. Query 'business-and-architecture' collection: "payment business rules"
 3. Query 'technical-decision-records' (or 'tech-specs') collection: "payment implementation patterns"
-4. Review loaded context before starting implementation
+4. [Technical Intent Discovery]: identify operations needed: HTTP calls to payment gateway, env vars for API keys, file-based logging
+   → Query 'technical-decision-records': "HTTP client library", "environment variables configuration", "file operations encoding"
+5. Review all loaded context (domain + technical) before starting implementation
 ```
 
 **Example 3: Fixing (User says "fix the bug in component X")**

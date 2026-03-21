@@ -18,11 +18,21 @@ When a user asks to implement a feature or work with `.feature` files:
      * Query `uisi` collection to load UI/UX requirements if applicable
    - **Query strategy**: Use semantic queries based on the feature domain, entities, and use cases to retrieve relevant context
    - **Never proceed without loading context**: Do NOT start feature analysis or implementation until you have queried and loaded the relevant context from the context store (via Cliplin MCP)
+   - **Technical Intent Discovery (MANDATORY before writing @constraints)**: After loading domain-specific context, infer the technical operations this feature's implementation will require. For each identified operation, query `technical-decision-records` to discover rules that govern that specific technical pattern — even if those TDRs are not mentioned in the feature file.
+     * Reading/writing files → query `"file operations encoding"`
+     * Reading environment variables or config → query `"environment variables configuration"`
+     * HTTP calls to external APIs → query `"HTTP client library"`
+     * Database interactions → query `"database access patterns"`
+     * Cryptography or password hashing → query `"cryptography hashing library"`
+     * Spawning subprocesses → query `"subprocess execution"`
+     * Parsing/serializing data formats (YAML, JSON, CSV) → query `"YAML JSON parsing"`
+     * CLI argument parsing → query `"CLI argument parser"`
+     * Add any relevant TDRs found to `governed_by` in the `@constraints` block — these are real constraints for this feature
    - **Context update check**: After loading context, verify if any context files need reindexing:
      * Run `cliplin reindex --dry-run` to check if context files are up to date
      * If context files are outdated, ask user for confirmation before reindexing
      * Only proceed with feature work after ensuring context is current and loaded
-   - **Write @constraints block (MANDATORY planning gate)**: After loading context and before any analysis or implementation, write the `@constraints` block at the top of the feature file (before `Feature:`). Use the following format:
+   - **Write @constraints block (MANDATORY planning gate)**: After loading context (domain + technical intent discovery) and before any analysis or implementation, write the `@constraints` block at the top of the feature file (before `Feature:`). Use the following format:
      ```
      @constraints
      # governed_by:
@@ -150,11 +160,18 @@ When a user asks to modify an existing feature:
      * Query `uisi` collection if UI/UX changes are involved
    - **Query strategy**: Use semantic queries based on the feature domain, entities, and use cases to retrieve relevant context
    - **Never proceed without loading context**: Do NOT start modification analysis until you have queried and loaded the relevant context from the context store (via Cliplin MCP)
+   - **Technical Intent Discovery (MANDATORY before updating @constraints)**: After loading domain-specific context, infer the technical operations the modified implementation will require. For each identified operation, query `technical-decision-records` to discover rules that govern that specific technical pattern.
+     * Reading/writing files → query `"file operations encoding"`
+     * Reading environment variables or config → query `"environment variables configuration"`
+     * HTTP calls to external APIs → query `"HTTP client library"`
+     * Database interactions → query `"database access patterns"`
+     * Any other technical operation the modification will introduce
+     * Add any relevant TDRs found to `governed_by` in the `@constraints` block
    - **Context update check**: After loading context, verify if any context files need reindexing:
      * Run `cliplin reindex --dry-run` to check if context files are up to date
      * If context files are outdated, ask user for confirmation before reindexing
      * Only proceed with feature modification after ensuring context is current and loaded
-   - **Update @constraints block**: After loading context, review the existing `@constraints` block (if present) and update it to reflect the current governing docs, any new conflicts, and any new or resolved gaps. If no block exists, write one before starting modification analysis.
+   - **Update @constraints block**: After loading context (domain + technical intent discovery), review the existing `@constraints` block (if present) and update it to reflect the current governing docs, any new conflicts, and any new or resolved gaps. If no block exists, write one before starting modification analysis.
    - **Generate implementation prompt**: Ask the user if they want you to run `cliplin feature apply <feature-filepath>` to generate a structured implementation prompt that includes the feature content and implementation instructions. If the user confirms, execute the command and use the generated prompt as part of your modification workflow
 
 1. **Impact Analysis**:
