@@ -128,7 +128,8 @@ Feature: Cliplin Knowledge Package Manager
     And the CLI should show the `knowledge` command in the main `cliplin --help` output
 
   @status:implemented
-  @changed:2025-02-17
+  @changed:2026-03-26
+  @reason:Added skill link creation step to spec; confirmed by tests in tests/test_knowledge_install_skill_links.py
   Scenario: Install all knowledge packages from cliplin.yaml
     Given my project has a `cliplin.yaml` with a `knowledge` section containing one or more packages
     And some packages may be installed and some may not
@@ -136,6 +137,7 @@ Feature: Cliplin Knowledge Package Manager
     Then the CLI should for each package declared in `cliplin.yaml`: add it if not installed, or update it if already installed
     And the CLI should create or refresh package directories under `.cliplin/knowledge/` with the naming convention `<name>-<source_normalized>`
     And the CLI should trigger reindexing for each package so its documents are indexed into the context store
+    And for each installed or updated package, if the host integration supports skills (e.g. Claude Code → `.claude/skills`, Cursor → `.cursor/skills`, Gemini CLI → `.gemini/skills`), the CLI should create or refresh skill links under the host's skills directory — same behavior as `knowledge add`
     And the CLI should display a success message indicating how many packages were installed or updated
     And if the `knowledge` section is empty, the CLI should display an appropriate message and exit successfully
 
