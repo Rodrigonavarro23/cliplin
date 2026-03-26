@@ -27,6 +27,7 @@ from cliplin.utils.templates import (
 )
 from cliplin.commands.reindex import get_files_to_reindex, reindex_file
 from cliplin.commands.knowledge import knowledge_install_command
+from cliplin.utils.knowledge import get_knowledge_packages, load_config
 
 console = Console()
 
@@ -111,8 +112,11 @@ def init_command(
         console.print("\n[bold]Indexing framework context...[/bold]")
         _reindex_framework_package(project_root)
 
-        # On re-init, reinstall knowledge packages from config
-        if was_already_initialized:
+        # Install knowledge packages from config — always, not just on re-init.
+        # On a fresh clone, cliplin.yaml may already declare packages; first init
+        # must install them and create skill links just like a re-init would.
+        config_for_knowledge = load_config(project_root)
+        if get_knowledge_packages(config_for_knowledge):
             console.print("\n[bold]Installing knowledge packages from config...[/bold]")
             knowledge_install_command(force=False)
 

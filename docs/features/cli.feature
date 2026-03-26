@@ -221,7 +221,8 @@ Feature: Cliplin CLI Tool
     And the rule files should define context loading protocol requiring AI assistants to query the context store (via Cliplin MCP) before starting any task
 
   @status:implemented
-  @changed:2024-01-15
+  @changed:2026-03-26
+  @reason:Fresh-clone gap — first init with pre-declared knowledge packages did not install packages or create skill links
   Scenario: Handle initialization in non-empty directory
     Given I have the Cliplin CLI tool installed
     And I am in a directory that already contains some files
@@ -236,6 +237,7 @@ Feature: Cliplin CLI Tool
     And when the user has confirmed on an already-initialized project, the CLI should run knowledge install at the end to reinstall knowledge packages listed in cliplin.yaml
     And if the user declines, the CLI should abort without making changes
     And if Cliplin is not initialized, the CLI should proceed with initialization normally
+    And regardless of whether Cliplin was already initialized, if `cliplin.yaml` declares knowledge packages the CLI should run knowledge install at the end of init to install packages and create skill links
 
   @status:new
   @changed:2025-02-23
