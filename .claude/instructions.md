@@ -149,11 +149,21 @@ When a user asks to implement a feature or work with `.feature` files:
      * Query `uisi` collection to load UI/UX requirements if applicable
    - **Query strategy**: Use semantic queries based on the feature domain, entities, and use cases to retrieve relevant context
    - **Never proceed without loading context**: Do NOT start feature analysis or implementation until you have queried and loaded the relevant context from the context store (via Cliplin MCP)
+   - **Technical Intent Discovery (MANDATORY before writing @constraints)**: After loading domain-specific context, infer the technical operations this feature's implementation will require. For each identified operation, query `technical-decision-records` to discover rules that govern that specific technical pattern — even if those TDRs are not mentioned in the feature file.
+     * Reading/writing files → query `"file operations encoding"`
+     * Reading environment variables or config → query `"environment variables configuration"`
+     * HTTP calls to external APIs → query `"HTTP client library"`
+     * Database interactions → query `"database access patterns"`
+     * Cryptography or password hashing → query `"cryptography hashing library"`
+     * Spawning subprocesses → query `"subprocess execution"`
+     * Parsing/serializing data formats (YAML, JSON, CSV) → query `"YAML JSON parsing"`
+     * CLI argument parsing → query `"CLI argument parser"`
+     * Add any relevant TDRs found to `governed_by` in the `@constraints` block — these are real constraints for this feature
    - **Context update check**: After loading context, verify if any context files need reindexing:
      * Run `cliplin reindex --dry-run` to check if context files are up to date
      * If context files are outdated, ask user for confirmation before reindexing
      * Only proceed with feature work after ensuring context is current and loaded
-   - **Write @constraints block (MANDATORY planning gate)**: After loading context and before any analysis or implementation, write the `@constraints` block at the top of the feature file (before `Feature:`). Use the following format:
+   - **Write @constraints block (MANDATORY planning gate)**: After loading context (domain + technical intent discovery) and before any analysis or implementation, write the `@constraints` block at the top of the feature file (before `Feature:`). Use the following format:
      ```
      @constraints
      # governed_by:
@@ -281,11 +291,18 @@ When a user asks to modify an existing feature:
      * Query `uisi` collection if UI/UX changes are involved
    - **Query strategy**: Use semantic queries based on the feature domain, entities, and use cases to retrieve relevant context
    - **Never proceed without loading context**: Do NOT start modification analysis until you have queried and loaded the relevant context from the context store (via Cliplin MCP)
+   - **Technical Intent Discovery (MANDATORY before updating @constraints)**: After loading domain-specific context, infer the technical operations the modified implementation will require. For each identified operation, query `technical-decision-records` to discover rules that govern that specific technical pattern.
+     * Reading/writing files → query `"file operations encoding"`
+     * Reading environment variables or config → query `"environment variables configuration"`
+     * HTTP calls to external APIs → query `"HTTP client library"`
+     * Database interactions → query `"database access patterns"`
+     * Any other technical operation the modification will introduce
+     * Add any relevant TDRs found to `governed_by` in the `@constraints` block
    - **Context update check**: After loading context, verify if any context files need reindexing:
      * Run `cliplin reindex --dry-run` to check if context files are up to date
      * If context files are outdated, ask user for confirmation before reindexing
      * Only proceed with feature modification after ensuring context is current and loaded
-   - **Update @constraints block**: After loading context, review the existing `@constraints` block (if present) and update it to reflect the current governing docs, any new conflicts, and any new or resolved gaps. If no block exists, write one before starting modification analysis.
+   - **Update @constraints block**: After loading context (domain + technical intent discovery), review the existing `@constraints` block (if present) and update it to reflect the current governing docs, any new conflicts, and any new or resolved gaps. If no block exists, write one before starting modification analysis.
    - **Generate implementation prompt**: Ask the user if they want you to run `cliplin feature apply <feature-filepath>` to generate a structured implementation prompt that includes the feature content and implementation instructions. If the user confirms, execute the command and use the generated prompt as part of your modification workflow
 
 1. **Impact Analysis**:
@@ -343,7 +360,39 @@ When working with feature files, use the following tags at the **scenario level*
 - **`@changed:YYYY-MM-DD`** - Date when scenario was last changed (format: YYYY-MM-DD).
 - **`@reason:<description>`** - Optional reason for status change or modification.
 
-**Tag placement**: Tags should be placed directly above the `Scenario:` line:
+### Scenario Type Classification Tags (agent-proposed scenarios only)
+
+When an AI agent proposes scenarios beyond what the human explicitly requested, it MUST classify each one and justify non-main cases. These tags apply **only to agent-proposed scenarios** — human-authored scenarios do not require a type tag.
+
+- **`@type:main`** - Scenario derived directly from the confirmed intent (the human's core request).
+- **`@type:edge`** - Boundary or failure case the implementation must handle. Requires a `# why: <reason>` comment citing the source (TDR rule, domain analysis, detected gap).
+- **`@type:complementary`** - Adjacent state or actor that completes coverage but is not a strict edge of the main case. Requires a `# why: <reason>` comment citing the source.
+
+**`# why:` comment**: Use a Gherkin comment (not a tag) to explain why the agent is adding an edge or complementary scenario. This keeps the reason human-readable without breaking Gherkin parsers. The reason must cite a traceable source.
+
+**Tag order for agent-proposed scenarios**: `@type:*` → `# why: <reason>` (if edge/complementary) → `@status:*` → `@changed:*`
+
+**Tag placement example**:
+```
+@type:main
+@status:new
+Scenario: User logs in with valid credentials
+  Given ...
+
+@type:edge
+# why: Auth TDR defines a 15-min session timeout; mid-flow expiry is a real failure mode not visible at request time
+@status:new
+Scenario: User session expires during multi-step login
+  Given ...
+
+@type:complementary
+# why: Completes the error surface — maintenance mode is a system state the auth flow must handle gracefully
+@status:new
+Scenario: User sees maintenance page during login
+  Given ...
+```
+
+**Tag placement for human-authored scenarios** (no type tag needed):
 ```
 @status:implemented
 @changed:2024-01-15
@@ -357,6 +406,8 @@ Scenario: User login with OAuth
 - **Never modify** scenarios tagged with `@status:deprecated`
 - Always update `@changed` and `@status` tags when modifying scenarios
 - Use `@reason` tag to document why changes were made
+- `@type:*` tags are for agent-proposed scenarios only; do not add them to human-authored scenarios
+- Edge and complementary scenarios MUST have a `# why:` comment — never propose them without justification
 
 ### @constraints Block Reference
 
@@ -437,8 +488,28 @@ alwaysApply: true
    - Query `features` for related features and dependencies
    - Query `uisi` if UI/UX work is involved
 
+4.5. **Technical Intent Discovery** (mandatory for implementation and coding tasks):
+   After loading domain-specific context, infer the technical operations this implementation will require. For each identified operation, query `technical-decision-records` to discover rules that govern that specific technical pattern — even if those TDRs are not mentioned in any feature file.
+
+   **Common technical operations to check:**
+   - Reading/writing files → query `"file operations encoding"`
+   - Reading environment variables or config → query `"environment variables configuration"`
+   - HTTP calls to external APIs → query `"HTTP client library"`
+   - Database interactions → query `"database access patterns"`
+   - Cryptography or password hashing → query `"cryptography hashing library"`
+   - Spawning subprocesses → query `"subprocess execution"`
+   - Parsing/serializing data formats (YAML, JSON, CSV) → query `"YAML JSON parsing"`
+   - CLI argument parsing → query `"CLI argument parser"`
+
+   For each identified operation, run:
+   `context_query_documents("technical-decision-records", ["<technical operation>"])`
+
+   Add any relevant TDRs found to the `governed_by` list in the `@constraints` block.
+   These TDRs are real constraints for this feature and SHOULD appear in `governed_by`.
+
 5. **Never Proceed Without Context**: Do NOT start any task until you have:
    - Queried and loaded relevant context from the context store collections (via Cliplin MCP)
+   - Completed Technical Intent Discovery (step 4.5) for implementation tasks
    - Reviewed the loaded context to understand constraints and requirements
    - Verified that context is current (check for outdated files if needed)
 
@@ -458,7 +529,9 @@ alwaysApply: true
 1. Query 'features' collection: "payment processing scenarios"
 2. Query 'business-and-architecture' collection: "payment business rules"
 3. Query 'technical-decision-records' (or 'tech-specs') collection: "payment implementation patterns"
-4. Review loaded context before starting implementation
+4. [Technical Intent Discovery]: identify operations needed: HTTP calls to payment gateway, env vars for API keys, file-based logging
+   → Query 'technical-decision-records': "HTTP client library", "environment variables configuration", "file operations encoding"
+5. Review all loaded context (domain + technical) before starting implementation
 ```
 
 **Example 3: Fixing (User says "fix the bug in component X")**

@@ -1472,7 +1472,39 @@ When working with feature files, use the following tags at the **scenario level*
 - **`@changed:YYYY-MM-DD`** - Date when scenario was last changed (format: YYYY-MM-DD).
 - **`@reason:<description>`** - Optional reason for status change or modification.
 
-**Tag placement**: Tags should be placed directly above the `Scenario:` line:
+### Scenario Type Classification Tags (agent-proposed scenarios only)
+
+When an AI agent proposes scenarios beyond what the human explicitly requested, it MUST classify each one and justify non-main cases. These tags apply **only to agent-proposed scenarios** — human-authored scenarios do not require a type tag.
+
+- **`@type:main`** - Scenario derived directly from the confirmed intent (the human's core request).
+- **`@type:edge`** - Boundary or failure case the implementation must handle. Requires a `# why: <reason>` comment citing the source (TDR rule, domain analysis, detected gap).
+- **`@type:complementary`** - Adjacent state or actor that completes coverage but is not a strict edge of the main case. Requires a `# why: <reason>` comment citing the source.
+
+**`# why:` comment**: Use a Gherkin comment (not a tag) to explain why the agent is adding an edge or complementary scenario. This keeps the reason human-readable without breaking Gherkin parsers. The reason must cite a traceable source.
+
+**Tag order for agent-proposed scenarios**: `@type:*` → `# why: <reason>` (if edge/complementary) → `@status:*` → `@changed:*`
+
+**Tag placement example**:
+```
+@type:main
+@status:new
+Scenario: User logs in with valid credentials
+  Given ...
+
+@type:edge
+# why: Auth TDR defines a 15-min session timeout; mid-flow expiry is a real failure mode not visible at request time
+@status:new
+Scenario: User session expires during multi-step login
+  Given ...
+
+@type:complementary
+# why: Completes the error surface — maintenance mode is a system state the auth flow must handle gracefully
+@status:new
+Scenario: User sees maintenance page during login
+  Given ...
+```
+
+**Tag placement for human-authored scenarios** (no type tag needed):
 ```
 @status:implemented
 @changed:2024-01-15
@@ -1486,6 +1518,8 @@ Scenario: User login with OAuth
 - **Never modify** scenarios tagged with `@status:deprecated`
 - Always update `@changed` and `@status` tags when modifying scenarios
 - Use `@reason` tag to document why changes were made
+- `@type:*` tags are for agent-proposed scenarios only; do not add them to human-authored scenarios
+- Edge and complementary scenarios MUST have a `# why:` comment — never propose them without justification
 
 ### @constraints Block Reference
 
