@@ -12,11 +12,13 @@ from cliplin.utils.ai_host_integrations.base import (
 from cliplin.utils.ai_host_integrations.claude_desktop import ClaudeDesktopIntegration
 from cliplin.utils.ai_host_integrations.cursor import CursorIntegration
 from cliplin.utils.ai_host_integrations.gemini_cli import GeminiCliIntegration
+from cliplin.utils.ai_host_integrations.opencode import OpenCodeIntegration
 
 # Register built-in integrations so create_ai_tool_config and validate can resolve by id
 register_integration(CursorIntegration())
 register_integration(ClaudeDesktopIntegration())  # id = "claude-code"
 register_integration(GeminiCliIntegration())
+register_integration(OpenCodeIntegration())
 
 # Backward-compatible alias: "claude-desktop" resolves to "claude-code"
 register_alias("claude-desktop", "claude-code")

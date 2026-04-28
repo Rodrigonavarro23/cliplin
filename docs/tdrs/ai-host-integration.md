@@ -1,8 +1,8 @@
 ---
 tdr: "1.0"
 id: "ai-host-integration"
-title: "AI Host Integration (Cursor, Claude Desktop, Gemini CLI)"
-summary: "Cross-host rules: same MCP command, config generator sync, and checklist. Host-specific specs live in dedicated TDRs (cursor-integration, claude-desktop-integration, gemini-integration). Claude integration: primary ID is 'claude-code', 'claude-desktop' is a backward-compat alias."
+title: "AI Host Integration (Cursor, Claude Desktop, Gemini CLI, OpenCode AI)"
+summary: "Cross-host rules: same MCP command, config generator sync, and checklist. Host-specific specs live in dedicated TDRs (cursor-integration, claude-desktop-integration, gemini-integration, opencode-integration). Claude integration: primary ID is 'claude-code', 'claude-desktop' is a backward-compat alias."
 ---
 
 # rules
@@ -12,6 +12,7 @@ summary: "Cross-host rules: same MCP command, config generator sync, and checkli
 - **Cursor**: config `.cursor/mcp.json`; rules `.cursor/rules/*.mdc`. Quirks and paths: docs/tdrs/cursor-integration.md
 - **Claude Code** (alias: `claude-desktop`): config `.mcp.json` at project root; rules `.claude/rules/`; Skills support. Primary ID: `claude-code`. Quirks and paths: docs/tdrs/claude-desktop-integration.md
 - **Gemini CLI**: project settings `.gemini/settings.json` (project-level settings file); context file `GEMINI.md` loaded as hierarchical instructional context. Quirks and paths: docs/tdrs/gemini-integration.md
+- **OpenCode AI**: project config `opencode.json` at project root; rules file `OPENCODE.md` referenced via `instructions` array; skills in `.opencode/skills/`. MCP format uses `type: "local"` + `command: [...]` array (OpenCode-specific shape — see opencode-integration TDR). Quirks and paths: docs/tdrs/opencode-integration.md
 - Other MCP-compatible hosts may be added later; each gets its own config generator and, if needed, a dedicated TDR (e.g. docs/tdrs/<host>-integration.md)
 
 ## MCP command must be consistent across hosts (MUST)
@@ -31,7 +32,8 @@ summary: "Cross-host rules: same MCP command, config generator sync, and checkli
 - [ ] create_cursor_mcp_config and create_claude_desktop_mcp_config in templates.py both use the same command/args
 - [ ] The `claude-code` ID is the canonical ID; `claude-desktop` remains registered as an alias via `register_alias("claude-desktop", "claude-code")` in `__init__.py`
 - [ ] Command is `uv run cliplin mcp` (or documented exception)
-- [ ] Any new host has its integration class in ai_host_integrations and is listed in this TS4 (and has a host-specific TS4 if needed)
+- [ ] Any new host has its integration class in ai_host_integrations and is listed in this TDR (and has a host-specific TDR if needed)
+- [ ] OpenCode integration writes `type: "local"` + `command: [...]` array format (not separate command/args) — see docs/tdrs/opencode-integration.md
 code_refs:
   - "src/cliplin/utils/templates.py"
   - "src/cliplin/utils/ai_host_integrations/"
@@ -40,4 +42,6 @@ code_refs:
   - "docs/tdrs/system-modules.md"
   - "docs/tdrs/cursor-integration.md"
   - "docs/tdrs/claude-desktop-integration.md"
+  - "docs/tdrs/gemini-integration.md"
+  - "docs/tdrs/opencode-integration.md"
   - "docs/business/framework.md"

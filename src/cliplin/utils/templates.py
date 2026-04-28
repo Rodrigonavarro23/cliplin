@@ -1812,6 +1812,79 @@ This file contains the rules and protocols that Gemini CLI should follow when wo
 """
 
 
+def create_opencode_config(target_dir: Path) -> None:
+    """Create or update opencode.json with Cliplin context MCP server configuration."""
+    config_file = target_dir / "opencode.json"
+
+    cliplin_server: Dict[str, Any] = {
+        "type": "local",
+        "command": ["uv", "run", "cliplin", "mcp"],
+    }
+
+    existing: Dict[str, Any] = {}
+    if config_file.exists():
+        try:
+            with open(config_file, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    existing = loaded
+        except (json.JSONDecodeError, IOError):
+            existing = {}
+
+    mcp = existing.get("mcp")
+    if not isinstance(mcp, dict):
+        mcp = {}
+    mcp["cliplin-context"] = cliplin_server
+    existing["mcp"] = mcp
+
+    instructions = existing.get("instructions")
+    if not isinstance(instructions, list):
+        instructions = []
+    if "OPENCODE.md" not in instructions:
+        instructions.append("OPENCODE.md")
+    existing["instructions"] = instructions
+
+    with open(config_file, "w", encoding="utf-8") as f:
+        json.dump(existing, f, indent=2, ensure_ascii=False)
+
+    console.print("  [green]✓[/green] Created/updated opencode.json")
+
+
+def get_opencode_opencode_md_content() -> str:
+    """Get the OPENCODE.md content for OpenCode AI."""
+    context_content = get_cursor_context_content()
+    feature_first_flow_content = get_feature_first_flow_content()
+    feature_content = get_cursor_feature_processing_content()
+    protocol_content = get_cursor_context_protocol_loading_content()
+
+    return f"""# Cliplin Project Instructions for OpenCode AI
+
+This file contains the rules and protocols that OpenCode should follow when working on this Cliplin project.
+
+## How to Use This File
+
+- Run `opencode` from this project root so it discovers `opencode.json` and loads `OPENCODE.md` via the `instructions` setting.
+- Ensure that `opencode.json` contains an MCP server named `cliplin-context` pointing to `uv run cliplin mcp` (managed by `cliplin init --ai opencode`).
+- Keep this file in the project so OpenCode can always load the same rules and conventions when assisting on this repository.
+
+---
+
+{context_content}
+
+---
+
+{feature_first_flow_content}
+
+---
+
+{feature_content}
+
+---
+
+{protocol_content}
+"""
+
+
 def get_claude_desktop_claude_md_content() -> str:
     """Get the claude.md content for Claude Desktop directory."""
     return """# Claude Desktop Configuration for Cliplin

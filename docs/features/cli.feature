@@ -6,6 +6,7 @@
 #   - docs/tdrs/cursor-integration.md
 #   - docs/tdrs/claude-desktop-integration.md
 #   - docs/tdrs/gemini-integration.md
+#   - docs/tdrs/opencode-integration.md
 #   - docs/tdrs/system-modules.md
 #   - docs/tdrs/feature-template-mapping.md
 #   - docs/adrs/000-cliplin-framework.md
@@ -147,6 +148,44 @@ Feature: Cliplin CLI Tool
     And the CLI should initialize context store collections as specified in the context rules
     And the CLI should display a success message indicating project initialization with Gemini CLI is complete
 
+  @type:main
+  @status:implemented
+  @changed:2026-04-28
+  @reason:Add OpenCode AI as supported AI host
+  Scenario: Initialize a Cliplin project with specific AI tool (OpenCode AI)
+    Given I have the Cliplin CLI tool installed
+    And I am in an empty directory or a new project directory
+    When I run `cliplin init --ai opencode`
+    Then the CLI should create configuration files in the current directory
+    And the CLI should generate configuration files adjusted for the AI tool ID "opencode"
+    And the CLI should create `opencode.json` at the project root if it does not exist
+    And the CLI should configure `opencode.json` with Cliplin context MCP server configuration
+    And the `opencode.json` file should define the Cliplin context MCP server under `mcp.cliplin-context` with:
+      | Field   | Description                                               |
+      | type    | "local" — subprocess MCP server                           |
+      | command | Array ["uv", "run", "cliplin", "mcp"] — startup command   |
+    And the CLI should create an `OPENCODE.md` context file at the project root containing Cliplin project rules and conventions
+    And the CLI should configure `opencode.json` with `"instructions": ["OPENCODE.md"]` so OpenCode loads the rules file
+    And the CLI should link framework skills to `.opencode/skills/` directory (warn and continue on failure)
+    And the CLI should ensure `.cliplin` is listed in `.gitignore`
+    And the CLI should validate that OpenCode-specific configurations are correct
+    And the CLI should initialize context store collections as specified in the context rules
+    And the CLI should display a success message indicating project initialization with OpenCode AI is complete
+
+  @type:complementary
+  # why: Consistent with how cursor/claude-code/gemini handle re-init — existing config must be preserved/merged, not overwritten. ai-host-integration TDR requires preserving existing MCP server entries on re-init.
+  @status:implemented
+  @changed:2026-04-28
+  @reason:Merge behaviour for existing opencode.json must be specified explicitly per ai-host-integration TDR
+  Scenario: Initialize OpenCode AI in a directory with an existing opencode.json
+    Given I have the Cliplin CLI tool installed
+    And I am in a directory with an existing `opencode.json` that does not contain Cliplin MCP configuration
+    When I run `cliplin init --ai opencode`
+    Then the CLI should preserve existing settings in `opencode.json` unrelated to Cliplin
+    And the CLI should add the `cliplin-context` entry under `mcp` without removing other MCP server entries
+    And the CLI should add `"OPENCODE.md"` to the `instructions` array without removing existing instruction entries
+    And the CLI should display a success message indicating project initialization with OpenCode AI is complete
+
   @status:implemented
   @changed:2025-02-16
   @reason:Config file default location moved to project root
@@ -172,6 +211,7 @@ Feature: Cliplin CLI Tool
     And if the AI tool is "cursor", the CLI should verify that `.cursor/mcp.json` exists
     And if the AI tool is "claude-code" (or alias "claude-desktop"), the CLI should verify that `.mcp.json` exists at the project root
     And if the AI tool is "gemini", the CLI should verify that `.gemini/settings.json` exists
+    And if the AI tool is "opencode", the CLI should verify that `opencode.json` exists at the project root
     And the CLI should verify that Python version is 3.10 or higher
     And the CLI should verify that required dependencies are available
     And if any validation fails, the CLI should display clear error messages indicating what is missing or incorrect
@@ -272,7 +312,7 @@ Feature: Cliplin CLI Tool
     And I am in an empty directory or a new project directory
     When I run `cliplin init --ai invalid-tool`
     Then the CLI should display an error message indicating that the AI tool ID is not recognized
-    And the CLI should list available AI tool IDs (e.g., "cursor", "claude-code", "gemini")
+    And the CLI should list available AI tool IDs (e.g., "cursor", "claude-code", "gemini", "opencode")
     And the CLI should exit with a non-zero status code
     And no files should be created in the current directory
 
