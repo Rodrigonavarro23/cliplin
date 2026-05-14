@@ -1992,18 +1992,17 @@ def create_wibey_mcp_config(target_dir: Path) -> None:
         json.dump(existing_config, f, indent=2, ensure_ascii=False)
 
 
-def get_wibey_agents_md_content() -> str:
-    """Get the Cliplin section content for AGENTS.md (Wibey host)."""
+def get_wibey_instructions_md_content() -> str:
+    """Get the full Cliplin rule content for .wibey/instructions.md."""
     context_content = get_cursor_context_content()
     feature_first_flow_content = get_feature_first_flow_content()
     feature_content = get_cursor_feature_processing_content()
     protocol_content = get_cursor_context_protocol_loading_content()
 
-    return f"""<!-- cliplin-wibey-start -->
-# Cliplin Project Instructions for Wibey
+    return f"""# Cliplin Project Instructions for Wibey
 
-This section contains the rules and protocols that Wibey should follow when working on this Cliplin project.
-Wibey loads this file automatically at session start. Rule files are also available under `.wibey/rules/`.
+This file contains the rules and protocols that Wibey should follow when working on this Cliplin project.
+Load this file at session start alongside the rule files under `.wibey/rules/`.
 
 ---
 
@@ -2020,6 +2019,24 @@ Wibey loads this file automatically at session start. Rule files are also availa
 ---
 
 {protocol_content}
+"""
+
+
+def get_wibey_agents_md_content() -> str:
+    """Get the minimal structured pointer for the Cliplin section in AGENTS.md.
+
+    Stays under 2000 characters — Wibey cannot load files exceeding this limit
+    at session start. Full rule content lives in .wibey/instructions.md.
+    """
+    return """<!-- cliplin-wibey-start -->
+# Cliplin — Wibey Session Bootstrap
+
+Load the following files at session start:
+- .wibey/instructions.md
+- .wibey/rules/context.md
+- .wibey/rules/feature-first-flow.md
+- .wibey/rules/feature-processing.md
+- .wibey/rules/context-protocol-loading.md
 <!-- cliplin-wibey-end -->
 """
 

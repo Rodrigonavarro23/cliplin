@@ -14,7 +14,7 @@ console = Console()
 
 
 class WibeyIntegration:
-    """Integration handler for Wibey: .wibey/mcp.json, .wibey/rules/*.md, and AGENTS.md."""
+    """Integration handler for Wibey: .wibey/mcp.json, .wibey/rules/*.md, .wibey/instructions.md, and AGENTS.md."""
 
     id = "wibey"
     rules_dir = ".wibey/rules"
@@ -37,6 +37,12 @@ class WibeyIntegration:
             file_path = f".wibey/rules/{filename}"
             (target_dir / file_path).write_text(getter(), encoding="utf-8")
             console.print(f"  [green]✓[/green] Created {file_path}")
+
+        instructions_path = target_dir / ".wibey" / "instructions.md"
+        instructions_path.write_text(
+            templates.get_wibey_instructions_md_content(), encoding="utf-8"
+        )
+        console.print("  [green]✓[/green] Created .wibey/instructions.md")
 
         templates.merge_wibey_agents_md(target_dir)
 

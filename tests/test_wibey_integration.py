@@ -80,20 +80,43 @@ class TestWibeyApply:
             content = (tmp_path / ".wibey" / "rules" / name).read_text(encoding="utf-8")
             assert len(content) > 50
 
+    def test_creates_instructions_md(self, tmp_path):
+        WibeyIntegration().apply(tmp_path)
+        assert (tmp_path / ".wibey" / "instructions.md").exists()
+
+    def test_instructions_md_has_full_rule_content(self, tmp_path):
+        WibeyIntegration().apply(tmp_path)
+        content = (tmp_path / ".wibey" / "instructions.md").read_text(encoding="utf-8")
+        assert len(content) > 2000
+        assert "context" in content.lower()
+
     def test_creates_agents_md(self, tmp_path):
         WibeyIntegration().apply(tmp_path)
         assert (tmp_path / "AGENTS.md").exists()
-
-    def test_agents_md_has_cliplin_rules(self, tmp_path):
-        WibeyIntegration().apply(tmp_path)
-        content = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
-        assert "cliplin" in content.lower() or "context" in content.lower()
 
     def test_agents_md_has_section_markers(self, tmp_path):
         WibeyIntegration().apply(tmp_path)
         content = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
         assert "<!-- cliplin-wibey-start -->" in content
         assert "<!-- cliplin-wibey-end -->" in content
+
+    def test_agents_md_cliplin_section_is_under_2000_chars(self, tmp_path):
+        WibeyIntegration().apply(tmp_path)
+        content = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+        start = content.index("<!-- cliplin-wibey-start -->")
+        end = content.index("<!-- cliplin-wibey-end -->") + len("<!-- cliplin-wibey-end -->")
+        assert (end - start) < 2000
+
+    def test_agents_md_lists_instructions_md_path(self, tmp_path):
+        WibeyIntegration().apply(tmp_path)
+        content = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+        assert ".wibey/instructions.md" in content
+
+    def test_agents_md_lists_rule_file_paths(self, tmp_path):
+        WibeyIntegration().apply(tmp_path)
+        content = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+        for rule in ["context.md", "feature-first-flow.md", "feature-processing.md", "context-protocol-loading.md"]:
+            assert f".wibey/rules/{rule}" in content
 
 
 class TestWibeyMcpMerge:

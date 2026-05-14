@@ -2,7 +2,7 @@
 tdr: "1.0"
 id: "wibey-integration"
 title: "Wibey AI Integration"
-summary: "Rules for configuring Wibey as an AI host for Cliplin (cliplin init --ai wibey). Wibey uses .wibey/ for its folder, .wibey/mcp.json for MCP config, .wibey/rules/ for rule files, AGENTS.md at project root as the inline instructional context file (multi-host convention), and .wibey/skills/ for framework skills."
+summary: "Rules for configuring Wibey as an AI host for Cliplin (cliplin init --ai wibey). Wibey uses .wibey/ for its folder, .wibey/mcp.json for MCP config, .wibey/rules/ for individual rule files, .wibey/instructions.md for full inline rule content, AGENTS.md at project root as a minimal structured pointer (<2000 chars) that lists the files to load, and .wibey/skills/ for framework skills."
 ---
 
 # rules
@@ -11,9 +11,12 @@ summary: "Rules for configuring Wibey as an AI host for Cliplin (cliplin init --
 
 - The AI host identifier for Wibey MUST be `wibey`. This is the value accepted by `cliplin init --ai` and stored in `cliplin.yaml` under the `ai_tool` key.
 - Wibey project configuration for this host MUST live in `.wibey/mcp.json` (inside the `.wibey/` directory, not at the project root).
-- The rule files for this host MUST be written under `.wibey/rules/` as standard `.md` files — Wibey does NOT support a rules subfolder natively; the rule files live there for source-of-truth storage but the instructional entry point is `AGENTS.md`.
-- The primary instructional context file for this host MUST be `AGENTS.md` at the project root. Wibey auto-loads `AGENTS.md` at session start by convention.
-- `AGENTS.md` is a **multi-host broader convention** (shared with other tooling such as OpenAI Codex/Agents). Cliplin MUST treat it as a shared file and never overwrite content written by other tools.
+- The rule files for this host MUST be written under `.wibey/rules/` as standard `.md` files (source-of-truth for each individual rule set).
+- The full inline Cliplin rule content MUST live in `.wibey/instructions.md`. This file contains all four rule sets (context indexing, feature-first flow, feature processing, context loading protocol) and is the equivalent of `.claude/instructions.md` in the Claude Code integration.
+- The primary session bootstrap file is `AGENTS.md` at the project root. Wibey auto-loads `AGENTS.md` at session start by convention.
+  - `AGENTS.md` is a **multi-host broader convention** (shared with other tooling such as OpenAI Codex/Agents). Cliplin MUST treat it as a shared file and never overwrite content written by other tools.
+  - The Cliplin section in `AGENTS.md` MUST be a **minimal structured pointer** — a list of explicit file paths that Wibey resolves to load the actual rules. It MUST NOT embed full rule content.
+  - The Cliplin section in `AGENTS.md` MUST remain **under 2000 characters**. This is a hard constraint: Wibey cannot load files whose size exceeds this limit at session start.
 - The AI host integration handler MUST expose:
   - `id = "wibey"`
   - `rules_dir = ".wibey/rules"` (rule files live here as source of truth)
@@ -33,18 +36,41 @@ summary: "Rules for configuring Wibey as an AI host for Cliplin (cliplin init --
   - Create the `.wibey/` directory if it does not exist.
   - Create a minimal `.wibey/mcp.json` containing a `mcpServers` object with the `cliplin-context` entry configured as above.
 
-## Context/rules file configuration (AGENTS.md)
+## Context/rules file configuration (instructions.md + AGENTS.md)
 
-- `cliplin init --ai wibey` MUST create or update `AGENTS.md` at the project root with full inline Cliplin rule content so that Wibey auto-loads them at session start.
-- The content of `AGENTS.md` MUST include the same core rule sets used by other hosts:
+### .wibey/instructions.md (full content)
+
+- `cliplin init --ai wibey` MUST create `.wibey/instructions.md` with the same four core rule sets used by other hosts:
   - Context indexing and collection mapping rules.
   - Feature-first flow rules.
   - Feature processing rules.
   - Context loading protocol rules.
 - Content MUST be generated from shared template functions in `templates.py` (do not duplicate content by hand).
+- This file is the Wibey equivalent of `.claude/instructions.md`. It holds the full rule content that would be too large for `AGENTS.md`.
+
+### AGENTS.md (minimal structured pointer)
+
+- `cliplin init --ai wibey` MUST create or update `AGENTS.md` at the project root.
+- The Cliplin section written to `AGENTS.md` MUST be a **structured list of explicit file paths** — not embedded rule content. Format:
+
+  ```
+  <!-- cliplin-wibey-start -->
+  # Cliplin — Wibey Session Bootstrap
+
+  Load the following files at session start:
+  - .wibey/instructions.md
+  - .wibey/rules/context.md
+  - .wibey/rules/feature-first-flow.md
+  - .wibey/rules/feature-processing.md
+  - .wibey/rules/context-protocol-loading.md
+  <!-- cliplin-wibey-end -->
+  ```
+
+- The Cliplin section MUST remain **under 2000 characters** (hard constraint — Wibey cannot load files exceeding this limit at session start).
 - Because `AGENTS.md` is a multi-host shared file, Cliplin MUST use a merge strategy:
-  - If `AGENTS.md` does not exist, create it with the Cliplin rule content.
-  - If `AGENTS.md` already exists, locate and update only the Cliplin-owned section (identifiable by a Cliplin section header) without removing or overwriting other sections.
+  - If `AGENTS.md` does not exist, create it with the minimal pointer content.
+  - If `AGENTS.md` already exists, locate the Cliplin section via `<!-- cliplin-wibey-start -->` / `<!-- cliplin-wibey-end -->` markers and replace only that section.
+  - If no markers are found, append the pointer content.
   - Cliplin MUST NOT remove any existing sections written by other tools.
 - Rule files under `.wibey/rules/` serve as the structured source of truth for each rule set. They are created with the same content as `.claude/rules/` (standard `.md` extension, not `.mdc`).
 
@@ -52,7 +78,7 @@ summary: "Rules for configuring Wibey as an AI host for Cliplin (cliplin init --
 
 - The AI host integration for Wibey MUST be implemented as a class that follows the shared `AiHostIntegration` protocol (see `ai-host-integration-handler-pattern` TDR):
   - The class lives under `src/cliplin/utils/ai_host_integrations/wibey.py`.
-  - It implements `apply(target_dir: Path) -> None`, which: creates `.wibey/` directory, creates `.wibey/rules/*.md`, creates/updates `.wibey/mcp.json`, creates/updates `AGENTS.md`, and links framework skills.
+  - It implements `apply(target_dir: Path) -> None`, which: creates `.wibey/` directory, creates `.wibey/rules/*.md`, creates `.wibey/instructions.md`, creates/updates `.wibey/mcp.json`, creates/updates `AGENTS.md` (minimal pointer), and links framework skills.
 - The integration MUST be registered in the central registry so that:
   - `get_known_ai_tool_ids()` includes `"wibey"` alongside `"cursor"`, `"claude-code"`, `"gemini"`, and `"opencode"`.
   - `create_ai_tool_config(project_root, "wibey")` delegates to the Wibey integration handler.
@@ -85,10 +111,11 @@ summary: "Rules for configuring Wibey as an AI host for Cliplin (cliplin init --
 | MCP config | `.mcp.json` (project root) | `.wibey/mcp.json` |
 | Rules folder | `.claude/rules/` | `.wibey/rules/` |
 | Rule file ext | `.md` | `.md` |
-| Instructional file | `.claude/instructions.md` | `AGENTS.md` (project root, shared convention) |
+| Full rule content file | `.claude/instructions.md` | `.wibey/instructions.md` |
+| Session bootstrap file | `.claude/claude.md` (README) | `AGENTS.md` (project root, multi-host convention) |
 | Auto-load mechanism | Loaded via CLAUDE.md / instructions | Wibey reads `AGENTS.md` at session start |
+| AGENTS.md / bootstrap content | N/A | Minimal structured pointer (<2000 chars) listing files to load |
 | Skills folder | `.claude/skills/` | `.wibey/skills/` |
-| Inline content strategy | Separate instructions.md | Inline content in AGENTS.md |
 
 code_refs:
   - "docs/features/cli.feature"
