@@ -1,3 +1,9 @@
+---
+description: Analyse the context health of a Cliplin project. Scans feature files for @constraints coverage, detects context drift (governed_by references pointing to missing files), finds dead documentation, and computes a context score from 0 to 100.
+when_to_use: Use when you want to audit whether feature specs are properly governed, find orphaned docs, or get a numeric health score before starting a feature cycle. Trigger phrases: "context audit", "context health", "context score", "run cliplin-context-audit".
+allowed-tools: Bash Read
+---
+
 # Skill: cliplin-context-audit
 
 Analyse the context health of a Cliplin project and output a single JSON object to stdout.

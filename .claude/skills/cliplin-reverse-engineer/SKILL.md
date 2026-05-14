@@ -1,3 +1,10 @@
+---
+description: Reverse-engineer a project and guide the user to create Cliplin specs (feature files, ADRs, TDRs, business docs) from existing code, documentation, and project signals.
+when_to_use: Use when a project has no specs yet (or incomplete specs) and you want to infer feature files and governing docs from existing source code. Supports resuming interrupted sessions via .cliplin/.re-progress.yaml. Trigger phrases: "reverse engineer", "generate specs from code", "run cliplin-reverse-engineer", or targeting a specific module (e.g. "reverse engineer src/payments").
+argument-hint: "[module-path]"
+allowed-tools: Bash Read
+---
+
 # Skill: cliplin-reverse-engineer
 
 Reverse-engineer a project and guide the user to create Cliplin specs (feature files,

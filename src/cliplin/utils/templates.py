@@ -627,7 +627,13 @@ def create_context_audit_skill(framework_base: Path) -> None:
     skill_dir.mkdir(parents=True, exist_ok=True)
     skill_path = skill_dir / "SKILL.md"
 
-    skill_content = """# Skill: cliplin-context-audit
+    skill_content = """---
+description: Analyse the context health of a Cliplin project. Scans feature files for @constraints coverage, detects context drift (governed_by references pointing to missing files), finds dead documentation, and computes a context score from 0 to 100.
+when_to_use: Use when you want to audit whether feature specs are properly governed, find orphaned docs, or get a numeric health score before starting a feature cycle. Trigger phrases: "context audit", "context health", "context score", "run cliplin-context-audit".
+allowed-tools: Bash Read
+---
+
+# Skill: cliplin-context-audit
 
 Analyse the context health of a Cliplin project and output a single JSON object to stdout.
 
@@ -736,7 +742,14 @@ def create_reverse_engineer_skill(framework_base: Path) -> None:
     skill_dir.mkdir(parents=True, exist_ok=True)
     skill_path = skill_dir / "SKILL.md"
 
-    skill_content = """# Skill: cliplin-reverse-engineer
+    skill_content = """---
+description: Reverse-engineer a project and guide the user to create Cliplin specs (feature files, ADRs, TDRs, business docs) from existing code, documentation, and project signals.
+when_to_use: Use when a project has no specs yet (or incomplete specs) and you want to infer feature files and governing docs from existing source code. Supports resuming interrupted sessions via .cliplin/.re-progress.yaml. Trigger phrases: "reverse engineer", "generate specs from code", "run cliplin-reverse-engineer", or targeting a specific module (e.g. "reverse engineer src/payments").
+argument-hint: "[module-path]"
+allowed-tools: Bash Read
+---
+
+# Skill: cliplin-reverse-engineer
 
 Reverse-engineer a project and guide the user to create Cliplin specs (feature files,
 ADRs, TDRs, business docs) from existing code, documentation, and project signals.
