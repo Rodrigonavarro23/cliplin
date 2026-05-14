@@ -1956,3 +1956,101 @@ Make sure the MCP server is properly configured in Claude Desktop's settings to 
 For more information about Cliplin, see the main project README.
 """
 
+
+def create_wibey_mcp_config(target_dir: Path) -> None:
+    """Create or update .wibey/mcp.json with Cliplin context MCP server configuration."""
+    wibey_dir = target_dir / ".wibey"
+    wibey_dir.mkdir(parents=True, exist_ok=True)
+    mcp_file = wibey_dir / "mcp.json"
+
+    cliplin_server_config = {
+        "command": "uv",
+        "args": ["run", "cliplin", "mcp"],
+    }
+
+    existing_config: Dict[str, Any] = {}
+    if mcp_file.exists():
+        try:
+            with open(mcp_file, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    existing_config = loaded
+        except (json.JSONDecodeError, IOError):
+            existing_config = {}
+
+    if "mcpServers" not in existing_config:
+        existing_config["mcpServers"] = {}
+
+    if "cliplin-context" in existing_config["mcpServers"]:
+        existing_config["mcpServers"]["cliplin-context"] = cliplin_server_config
+        console.print("  [yellow]⚠[/yellow]  Updated existing Cliplin MCP server in .wibey/mcp.json")
+    else:
+        existing_config["mcpServers"]["cliplin-context"] = cliplin_server_config
+        console.print("  [green]✓[/green] Created .wibey/mcp.json")
+
+    with open(mcp_file, "w", encoding="utf-8") as f:
+        json.dump(existing_config, f, indent=2, ensure_ascii=False)
+
+
+def get_wibey_agents_md_content() -> str:
+    """Get the Cliplin section content for AGENTS.md (Wibey host)."""
+    context_content = get_cursor_context_content()
+    feature_first_flow_content = get_feature_first_flow_content()
+    feature_content = get_cursor_feature_processing_content()
+    protocol_content = get_cursor_context_protocol_loading_content()
+
+    return f"""<!-- cliplin-wibey-start -->
+# Cliplin Project Instructions for Wibey
+
+This section contains the rules and protocols that Wibey should follow when working on this Cliplin project.
+Wibey loads this file automatically at session start. Rule files are also available under `.wibey/rules/`.
+
+---
+
+{context_content}
+
+---
+
+{feature_first_flow_content}
+
+---
+
+{feature_content}
+
+---
+
+{protocol_content}
+<!-- cliplin-wibey-end -->
+"""
+
+
+def merge_wibey_agents_md(target_dir: Path) -> None:
+    """Create or update the Cliplin/Wibey section in AGENTS.md at project root.
+
+    AGENTS.md is a multi-host shared file. Locates the Cliplin section by
+    <!-- cliplin-wibey-start --> / <!-- cliplin-wibey-end --> markers and replaces
+    only that section. Appends if markers are absent. Never removes content written
+    by other tools.
+    """
+    agents_md_path = target_dir / "AGENTS.md"
+    new_section = get_wibey_agents_md_content()
+
+    if not agents_md_path.exists():
+        agents_md_path.write_text(new_section, encoding="utf-8")
+        console.print("  [green]✓[/green] Created AGENTS.md")
+        return
+
+    existing = agents_md_path.read_text(encoding="utf-8")
+    start_marker = "<!-- cliplin-wibey-start -->"
+    end_marker = "<!-- cliplin-wibey-end -->"
+
+    if start_marker in existing and end_marker in existing:
+        before = existing[: existing.index(start_marker)]
+        after = existing[existing.index(end_marker) + len(end_marker):]
+        agents_md_path.write_text(before + new_section + after, encoding="utf-8")
+        console.print("  [yellow]⚠[/yellow]  Updated Cliplin section in AGENTS.md")
+    else:
+        separator = "\n\n" if not existing.endswith("\n\n") else ""
+        agents_md_path.write_text(existing + separator + new_section, encoding="utf-8")
+        console.print("  [green]✓[/green] Updated AGENTS.md")
+

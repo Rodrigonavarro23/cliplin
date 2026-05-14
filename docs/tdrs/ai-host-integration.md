@@ -1,8 +1,8 @@
 ---
 tdr: "1.0"
 id: "ai-host-integration"
-title: "AI Host Integration (Cursor, Claude Desktop, Gemini CLI, OpenCode AI)"
-summary: "Cross-host rules: same MCP command, config generator sync, and checklist. Host-specific specs live in dedicated TDRs (cursor-integration, claude-desktop-integration, gemini-integration, opencode-integration). Claude integration: primary ID is 'claude-code', 'claude-desktop' is a backward-compat alias."
+title: "AI Host Integration (Cursor, Claude Desktop, Gemini CLI, OpenCode AI, Wibey)"
+summary: "Cross-host rules: same MCP command, config generator sync, and checklist. Host-specific specs live in dedicated TDRs (cursor-integration, claude-desktop-integration, gemini-integration, opencode-integration, wibey-integration). Claude integration: primary ID is 'claude-code', 'claude-desktop' is a backward-compat alias."
 ---
 
 # rules
@@ -13,6 +13,7 @@ summary: "Cross-host rules: same MCP command, config generator sync, and checkli
 - **Claude Code** (alias: `claude-desktop`): config `.mcp.json` at project root; rules `.claude/rules/`; Skills support. Primary ID: `claude-code`. Quirks and paths: docs/tdrs/claude-desktop-integration.md
 - **Gemini CLI**: project settings `.gemini/settings.json` (project-level settings file); context file `GEMINI.md` loaded as hierarchical instructional context. Quirks and paths: docs/tdrs/gemini-integration.md
 - **OpenCode AI**: project config `opencode.json` at project root; rules file `OPENCODE.md` referenced via `instructions` array; skills in `.opencode/skills/`. MCP format uses `type: "local"` + `command: [...]` array (OpenCode-specific shape — see opencode-integration TDR). Quirks and paths: docs/tdrs/opencode-integration.md
+- **Wibey**: MCP config `.wibey/mcp.json`; rule files `.wibey/rules/*.md`; instructional context `AGENTS.md` at project root (multi-host broader convention, auto-loaded by Wibey at session start — inline content, merge strategy); skills in `.wibey/skills/`. Quirks and paths: docs/tdrs/wibey-integration.md
 - Other MCP-compatible hosts may be added later; each gets its own config generator and, if needed, a dedicated TDR (e.g. docs/tdrs/<host>-integration.md)
 
 ## MCP command must be consistent across hosts (MUST)
@@ -34,6 +35,7 @@ summary: "Cross-host rules: same MCP command, config generator sync, and checkli
 - [ ] Command is `uv run cliplin mcp` (or documented exception)
 - [ ] Any new host has its integration class in ai_host_integrations and is listed in this TDR (and has a host-specific TDR if needed)
 - [ ] OpenCode integration writes `type: "local"` + `command: [...]` array format (not separate command/args) — see docs/tdrs/opencode-integration.md
+- [ ] Wibey integration writes `.wibey/mcp.json` with standard `command/args` format; merges `AGENTS.md` without removing foreign content — see docs/tdrs/wibey-integration.md
 code_refs:
   - "src/cliplin/utils/templates.py"
   - "src/cliplin/utils/ai_host_integrations/"
@@ -44,4 +46,5 @@ code_refs:
   - "docs/tdrs/claude-desktop-integration.md"
   - "docs/tdrs/gemini-integration.md"
   - "docs/tdrs/opencode-integration.md"
+  - "docs/tdrs/wibey-integration.md"
   - "docs/business/framework.md"
