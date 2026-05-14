@@ -190,7 +190,7 @@ Feature: Cliplin CLI Tool
   @type:main
   @status:implemented
   @changed:2026-05-14
-  @reason:AGENTS.md reduced to minimal structured pointer (<2000 chars); full rule content moves to .wibey/instructions.md to stay within Wibey's file-size load limit
+  @reason:AGENTS.md Cliplin section wording changed to direct imperative session-start instruction mentioning alwaysApply
   Scenario: Initialize a Cliplin project with specific AI tool (Wibey)
     Given I have the Cliplin CLI tool installed
     And I am in an empty directory or a new project directory
@@ -207,9 +207,9 @@ Feature: Cliplin CLI Tool
     And the CLI should create `.wibey/instructions.md` with the full inline Cliplin rule content
       (context indexing, feature-first flow, feature processing, context loading protocol)
     And the CLI should create or update `AGENTS.md` at the project root
-    And `AGENTS.md` Cliplin section MUST be a minimal structured pointer under 2000 characters:
-      it lists `.wibey/instructions.md` and each file under `.wibey/rules/` as explicit paths
-      so Wibey loads them at session start without embedding the full content in `AGENTS.md`
+    And `AGENTS.md` Cliplin section MUST be a direct imperative session-start instruction under 2000 characters:
+      it commands Wibey to load `.wibey/instructions.md` and each `.wibey/rules/*.md` file
+      before any interaction, and states that files with `alwaysApply: true` apply automatically every session
     And if `AGENTS.md` already exists, the CLI should merge only the Cliplin section without removing content written by other tools
     And the CLI should create `.wibey/mcp.json` with the Cliplin MCP server under `mcpServers.cliplin-context` with:
       | Field   | Value                          |

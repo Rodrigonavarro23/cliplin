@@ -51,18 +51,22 @@ summary: "Rules for configuring Wibey as an AI host for Cliplin (cliplin init --
 ### AGENTS.md (minimal structured pointer)
 
 - `cliplin init --ai wibey` MUST create or update `AGENTS.md` at the project root.
-- The Cliplin section written to `AGENTS.md` MUST be a **structured list of explicit file paths** — not embedded rule content. Format:
+- The Cliplin section written to `AGENTS.md` MUST be a **direct imperative session-start instruction** — not embedded rule content. It must command the agent to load the files before any interaction and mention that files with `alwaysApply: true` apply automatically every session. Format:
 
   ```
   <!-- cliplin-wibey-start -->
-  # Cliplin — Wibey Session Bootstrap
+  # Cliplin — Session Start (always execute)
 
-  Load the following files at session start:
+  At the start of every new session, before any other interaction, you MUST load the following files.
+  Files that include the rule `alwaysApply: true` must be applied automatically in every session:
+
   - .wibey/instructions.md
   - .wibey/rules/context.md
   - .wibey/rules/feature-first-flow.md
   - .wibey/rules/feature-processing.md
   - .wibey/rules/context-protocol-loading.md
+
+  This is a mandatory session-start instruction. Execute it without exception before responding to any request.
   <!-- cliplin-wibey-end -->
   ```
 

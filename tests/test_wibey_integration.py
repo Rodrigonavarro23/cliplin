@@ -100,6 +100,22 @@ class TestWibeyApply:
         assert "<!-- cliplin-wibey-start -->" in content
         assert "<!-- cliplin-wibey-end -->" in content
 
+    def test_agents_md_contains_imperative_instruction(self, tmp_path):
+        WibeyIntegration().apply(tmp_path)
+        content = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+        assert "MUST" in content or "must" in content
+
+    def test_agents_md_mentions_always_apply(self, tmp_path):
+        WibeyIntegration().apply(tmp_path)
+        content = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+        assert "alwaysApply" in content
+
+    def test_agents_md_mentions_before_any_interaction(self, tmp_path):
+        WibeyIntegration().apply(tmp_path)
+        content = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+        lower = content.lower()
+        assert "before" in lower and ("interaction" in lower or "request" in lower)
+
     def test_agents_md_cliplin_section_is_under_2000_chars(self, tmp_path):
         WibeyIntegration().apply(tmp_path)
         content = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
