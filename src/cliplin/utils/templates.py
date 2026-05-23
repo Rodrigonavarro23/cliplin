@@ -1593,6 +1593,8 @@ alwaysApply: true
 
 ### Mandatory Context Loading Steps
 
+0. **Delegate context loading to a subagent (mandatory when the AI host supports it)**: If the AI host supports spawning subagents, ALL context-loading work — both Cliplin MCP tool calls (`context_query_documents`, `context_get_documents`, etc.) and any direct file reads of spec files — MUST be delegated to a dedicated context-loading subagent. The subagent executes all queries and reads, then returns **only the information directly relevant to the current task**: the constraints, decisions, and rules that will affect the answer or implementation. The main agent proceeds only with this distilled output, not with raw MCP responses or full file contents. This protects the main context window from noise and reduces token consumption. If the AI host does not support subagents, execute context loading inline as described in the steps below.
+
 1. **Query context store collections first (considering session state)**: For each request where context is needed, check whether the relevant specs and docs (features, ADRs, TDRs/TS4, UI Intent, knowledge packages) are already present in the current session. If not, you MUST query the relevant context store collections using the 'cliplin-context' MCP server (Cliplin MCP) to load them.
 
 2. **Determine Relevant Collections**: Based on the task domain, entities, and requirements, identify which collections contain relevant context. **Prefer TDR over TS4**: query `technical-decision-records` first; use `tech-specs` (TS4) as fallback and, if you only find TS4, suggest migrating to TDR (docs/business/tdr.md).
