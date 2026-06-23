@@ -7,6 +7,7 @@
 #   - docs/tdrs/claude-desktop-integration.md
 #   - docs/tdrs/gemini-integration.md
 #   - docs/tdrs/opencode-integration.md
+#   - docs/tdrs/wibey-integration.md
 #   - docs/tdrs/system-modules.md
 #   - docs/tdrs/feature-template-mapping.md
 #   - docs/adrs/000-cliplin-framework.md
@@ -186,9 +187,55 @@ Feature: Cliplin CLI Tool
     And the CLI should add `"OPENCODE.md"` to the `instructions` array without removing existing instruction entries
     And the CLI should display a success message indicating project initialization with OpenCode AI is complete
 
+  @type:main
   @status:implemented
-  @changed:2025-02-16
-  @reason:Config file default location moved to project root
+  @changed:2026-05-14
+  @reason:AGENTS.md Cliplin section wording changed to direct imperative session-start instruction mentioning alwaysApply
+  Scenario: Initialize a Cliplin project with specific AI tool (Wibey)
+    Given I have the Cliplin CLI tool installed
+    And I am in an empty directory or a new project directory
+    When I run `cliplin init --ai wibey`
+    Then the CLI should create configuration files in the current directory
+    And the CLI should generate configuration files adjusted for the AI tool ID "wibey"
+    And the CLI should create `.wibey/` directory structure
+    And the CLI should create rule files under `.wibey/rules/`:
+      | File                          | Purpose                                |
+      | context.md                    | Context indexing rules                 |
+      | feature-first-flow.md         | Feature-first flow rules               |
+      | feature-processing.md         | Feature processing rules               |
+      | context-protocol-loading.md   | Context loading protocol rules         |
+    And the CLI should create `.wibey/instructions.md` with the full inline Cliplin rule content
+      (context indexing, feature-first flow, feature processing, context loading protocol)
+    And the CLI should create or update `AGENTS.md` at the project root
+    And `AGENTS.md` Cliplin section MUST be a direct imperative session-start instruction under 2000 characters:
+      it commands Wibey to load `.wibey/instructions.md` and each `.wibey/rules/*.md` file
+      before any interaction, and states that files with `alwaysApply: true` apply automatically every session
+    And if `AGENTS.md` already exists, the CLI should merge only the Cliplin section without removing content written by other tools
+    And the CLI should create `.wibey/mcp.json` with the Cliplin MCP server under `mcpServers.cliplin-context` with:
+      | Field   | Value                          |
+      | command | "uv"                           |
+      | args    | ["run", "cliplin", "mcp"]      |
+    And the CLI should link framework skills to `.wibey/skills/` directory (warn and continue on failure)
+    And the CLI should display a success message indicating project initialization with Wibey is complete
+
+  @type:edge
+  # why: ai-host-integration TDR requires preserving existing config/instruction entries on re-init; AGENTS.md is a multi-host broader convention — wibey must merge its minimal pointer section without overwriting foreign content
+  @status:implemented
+  @changed:2026-05-14
+  @reason:AGENTS.md Cliplin section is now a minimal pointer; merge must not grow the section beyond the 2000-char limit
+  Scenario: Initialize Wibey in a directory with an existing AGENTS.md from another host
+    Given I have the Cliplin CLI tool installed
+    And I am in a directory with an existing `AGENTS.md` that contains entries unrelated to Wibey or Cliplin
+    When I run `cliplin init --ai wibey`
+    Then the CLI should preserve all existing content in `AGENTS.md`
+    And the CLI should append or update only the minimal Cliplin/Wibey pointer section in `AGENTS.md`
+    And the CLI should NOT remove or overwrite sections written by other tools
+    And the resulting Cliplin section in `AGENTS.md` should remain under 2000 characters
+    And the CLI should display a success message indicating project initialization with Wibey is complete
+
+  @status:implemented
+  @changed:2026-05-14
+  @reason:Added wibey host mcp_config_path check (.wibey/mcp.json)
   Scenario: Validate project structure after initialization
     Given I have initialized a Cliplin project using `cliplin init --ai cursor`
     When I run `cliplin validate` or the validation runs automatically after init
@@ -212,6 +259,7 @@ Feature: Cliplin CLI Tool
     And if the AI tool is "claude-code" (or alias "claude-desktop"), the CLI should verify that `.mcp.json` exists at the project root
     And if the AI tool is "gemini", the CLI should verify that `.gemini/settings.json` exists
     And if the AI tool is "opencode", the CLI should verify that `opencode.json` exists at the project root
+    And if the AI tool is "wibey", the CLI should verify that `.wibey/mcp.json` exists
     And the CLI should verify that Python version is 3.10 or higher
     And the CLI should verify that required dependencies are available
     And if any validation fails, the CLI should display clear error messages indicating what is missing or incorrect
@@ -312,7 +360,7 @@ Feature: Cliplin CLI Tool
     And I am in an empty directory or a new project directory
     When I run `cliplin init --ai invalid-tool`
     Then the CLI should display an error message indicating that the AI tool ID is not recognized
-    And the CLI should list available AI tool IDs (e.g., "cursor", "claude-code", "gemini", "opencode")
+    And the CLI should list available AI tool IDs (e.g., "cursor", "claude-code", "gemini", "opencode", "wibey")
     And the CLI should exit with a non-zero status code
     And no files should be created in the current directory
 
